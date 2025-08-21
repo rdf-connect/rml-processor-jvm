@@ -11,6 +11,9 @@ repositories {
 	maven { url = 'https://jitpack.io' }
 }
 
+group = "io.github.rdf-connect"
+version = "0.0.1"
+
 dependencies {
     implementation 'com.google.protobuf:protobuf-java:4.28.2'
 	implementation 'com.github.rmlio:rmlmapper-java:master-SNAPSHOT'

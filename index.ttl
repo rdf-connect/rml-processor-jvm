@@ -7,9 +7,8 @@
 rdfc:RmlMapper a rdfs:Class, owl:Class;
   rdfc:javaImplementationOf rdfc:Processor;
   rdfc:class "org.example.App";
-  rdfc:jar <./build/libs/rml-processor-all.jar>.
+  rdfc:jar <https://javadoc.jitpack.io/com/github/rdf-connect/rml-processor-jvm/master-SNAPSHOT/rml-processor-jvm-master-SNAPSHOT-all.jar>.
 
-# rdfc:jar <https://javadoc.jitpack.io/com/github/rdf-connect/template-processor-jvm/main-SNAPSHOT/template-processor-jvm-main-SNAPSHOT-all.jar>.
 [ ] a sh:NodeShape;
   sh:targetClass <Source>;
   sh:property [
