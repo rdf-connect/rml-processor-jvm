@@ -1,0 +1,62 @@
+@prefix sosa: <http://www.w3.org/ns/sosa/>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix sh: <http://www.w3.org/ns/shacl#>.
+@prefix rdfc: <https://w3id.org/rdf-connect#>.
+@prefix owl: <http://www.w3.org/2002/07/owl#>.
+
+# <> owl:imports <https://javadoc.jitpack.io/com/github/rdf-connect/jvm-runner/runner/master-SNAPSHOT/runner-master-SNAPSHOT-index.jar>.
+<> owl:imports <../../jvm-runner/indexLocal.ttl>.
+
+<> owl:imports <./node_modules/@rdfc/file-utils-processors-ts/processors.ttl>.
+<> owl:imports <./node_modules/@rdfc/js-runner/index.ttl>.
+<> owl:imports <../index.ttl>.
+<> a rdfc:Pipeline;
+  rdfc:consistsOf [
+    rdfc:instantiates rdfc:JvmRunner;
+    rdfc:processor <mapper>;
+  ], [
+    rdfc:instantiates rdfc:NodeRunner;
+    rdfc:processor <mappingReader>, <dataReader>;
+  ].
+
+<mappingData> a rdfc:Reader, rdfc:Writer.
+<mappingReader> a rdfc:GlobRead;
+  rdfc:glob <./mapping.ttl>;
+  rdfc:output <mappingData>;
+  rdfc:closeOnEnd "false".
+
+<data> a rdfc:Reader, rdfc:Writer.
+<dataReader> a rdfc:GlobRead;
+  rdfc:glob <./data.json>;
+  rdfc:output <data>;
+  rdfc:closeOnEnd "false".
+
+<default> a rdfc:Reader, rdfc:Writer.
+<mapper> a rdfc:RmlMapper;
+  rdfc:mappings <mappingData>;
+  rdfc:source [
+    rdfc:triggers true;
+    rdfc:reader <data>;
+    rdfc:mappingId rdfc:source1;
+  ];
+  rdfc:defaultTarget <default>.
+
+<logger> a <Log>;
+  rdfc:input <default>.
+
+<Log> a owl:Class, rdfs:Class;
+  rdfc:jsImplementationOf rdfc:Processor;
+  rdfs:label "Log Things";
+  rdfs:comment "Logs things";
+  rdfc:file <./logger.js>;
+  rdfc:class "Logger";
+  rdfs:entrypoint <./>.
+
+[ ] a sh:NodeShape;
+  sh:targetClass <Log>;
+  sh:property [
+    sh:name "streams";
+    sh:path rdfc:input;
+    sh:class rdfc:Reader;
+  ].
+

@@ -1,0 +1,70 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix sh: <http://www.w3.org/ns/shacl#>.
+@prefix rdfc: <https://w3id.org/rdf-connect#>.
+@prefix owl: <http://www.w3.org/2002/07/owl#>.
+
+rdfc:RmlMapper a rdfs:Class, owl:Class;
+  rdfc:javaImplementationOf rdfc:Processor;
+  rdfc:class "org.example.App";
+  rdfc:jar <./build/libs/rml-processor-all.jar>.
+
+# rdfc:jar <https://javadoc.jitpack.io/com/github/rdf-connect/template-processor-jvm/main-SNAPSHOT/template-processor-jvm-main-SNAPSHOT-all.jar>.
+[ ] a sh:NodeShape;
+  sh:targetClass <Source>;
+  sh:property [
+    sh:path rdfc:reader;
+    sh:name "reader";
+    sh:minCount 1;
+    sh:maxCount 1;
+    sh:class rdfc:Reader;
+  ], [
+    sh:path rdfc:mappingId;
+    sh:name "mappingId";
+    sh:maxCount 1;
+    sh:datatype xsd:string;
+  ], [
+    sh:path rdfc:triggers;
+    sh:name "trigger";
+    sh:maxCount 1;
+    sh:datatype xsd:boolean;
+  ].
+
+[ ] a sh:NodeShape;
+  sh:targetClass <Target>;
+  sh:property [
+    sh:path rdfc:writer;
+    sh:name "writer";
+    sh:minCount 1;
+    sh:maxCount 1;
+    sh:class rdfc:Writer;
+  ], [
+    sh:path rdfc:mappingId;
+    sh:name "mappingId";
+    sh:maxCount 1;
+    sh:datatype xsd:string;
+  ].
+
+[ ] a sh:NodeShape;
+  sh:targetClass rdfc:RmlMapper;
+  sh:property [
+    sh:path rdfc:mappings;
+    sh:name "mappings";
+    sh:minCount 1;
+    sh:maxCount 1;
+    sh:class rdfc:Reader;
+  ], [
+    sh:path rdfc:defaultTarget;
+    sh:name "defaultTarget";
+    sh:maxCount 1;
+    sh:class rdfc:Writer;
+  ], [
+    sh:path rdfc:source;
+    sh:name "sources";
+    sh:class <Source>;
+  ], [
+    sh:path rdfc:target;
+    sh:name "targets";
+    sh:class <Target>;
+  ].
+

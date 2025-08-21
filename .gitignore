@@ -1,0 +1,47 @@
+# -------------------------
+# Java & JVM
+# -------------------------
+*.class
+*.log
+*.ctxt
+hs_err_pid*
+replay_pid*
+
+# -------------------------
+# Gradle
+# -------------------------
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+.gradle-cache/
+
+# Local properties
+local.properties
+
+# -------------------------
+# Eclipse / JDTLS
+# -------------------------
+.project
+.classpath
+.settings/
+bin/                # Eclipse/JDTLS compiler output
+
+# -------------------------
+# IntelliJ / JetBrains
+# -------------------------
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# -------------------------
+# VSCode
+# -------------------------
+.vscode/
+
+# -------------------------
+# OS cruft
+# -------------------------
+.DS_Store
+Thumbs.db

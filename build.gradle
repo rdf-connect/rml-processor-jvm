@@ -1,0 +1,64 @@
+plugins {
+    id 'application'
+    id 'maven-publish'
+    // id 'com.github.johnrengelman.shadow' version '8.1.1'
+  id "io.github.goooler.shadow" version "8.1.8"
+}
+
+repositories {
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
+	maven { url = 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation 'com.google.protobuf:protobuf-java:4.28.2'
+	implementation 'com.github.rmlio:rmlmapper-java:master-SNAPSHOT'
+	implementation 'com.github.rdf-connect.jvm-runner:types:master-SNAPSHOT'
+
+    implementation 'org.apache.jena:jena-core:5.0.0'
+    implementation "org.apache.jena:jena-arq:5.0.0"
+}
+
+shadowJar {
+    mergeServiceFiles()
+    dependencies {
+        exclude(dependency('com.github.rdf-connect.jvm-runner:types:.*'))
+        exclude(dependency('com.google.protobuf:.*'))
+    }
+    zip64 true
+}
+configurations.all {
+    resolutionStrategy {
+        force "org.ow2.asm:asm:9.6"
+    }
+}
+
+// Apply a specific Java toolchain to ease working on different environments.
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+application {
+    // Define the main class for the application.
+    mainClass = 'org.example.App'
+}
+
+tasks.register("indexJar", Jar) {
+    archiveBaseName.set("index")
+    archiveClassifier.set("index")
+    from("index.ttl")
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            // fat jar
+            artifact(tasks.shadowJar)
+            // plain file
+            artifact(tasks.indexJar) 
+        }
+    }
+}
