@@ -4,8 +4,8 @@
 @prefix rdfc: <https://w3id.org/rdf-connect#>.
 @prefix owl: <http://www.w3.org/2002/07/owl#>.
 
-# <> owl:imports <https://javadoc.jitpack.io/com/github/rdf-connect/jvm-runner/runner/master-SNAPSHOT/runner-master-SNAPSHOT-index.jar>.
-<> owl:imports <../../jvm-runner/indexLocal.ttl>.
+# <> owl:imports <../../jvm-runner/indexLocal.ttl>.
+<> owl:imports <https://javadoc.jitpack.io/com/github/rdf-connect/jvm-runner/runner/master-SNAPSHOT/runner-master-SNAPSHOT-index.jar>.
 
 <> owl:imports <./node_modules/@rdfc/file-utils-processors-ts/processors.ttl>.
 <> owl:imports <./node_modules/@rdfc/js-runner/index.ttl>.
