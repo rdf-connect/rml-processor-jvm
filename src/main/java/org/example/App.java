@@ -12,11 +12,11 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 import com.google.protobuf.ByteString;
 
 import be.ugent.idlab.knows.functions.agent.Agent;
-import be.ugent.idlab.knows.functions.agent.AgentFactory;
 import be.ugent.rml.Executor;
 import be.ugent.rml.StrictMode;
 import be.ugent.rml.conformer.MappingConformer;
@@ -31,16 +31,6 @@ import io.github.rdfc.Processor;
 public class App extends Processor<App.Args> {
     final static String DEFAULT_BASE_IRI = "http://example.com/base/";
 
-    public static void main(String[] args) throws Exception {
-        // var app = new App();
-        // var reader1 = app.addReader("http://example.com/ns#myReader");
-        //
-        // reader1.msg(ByteString.copyFromUtf8(json));
-        // app.executeOnce();
-        // reader1.msg(ByteString.copyFromUtf8(json2));
-        // app.executeOnce();
-    }
-
     private List<QuadStore> rmlStores = new ArrayList<>();
     private RecordsFactory recordsFactory;
     private String baseIRI = DEFAULT_BASE_IRI;
@@ -52,8 +42,8 @@ public class App extends Processor<App.Args> {
     private Set<String> openReader = new HashSet<>();
     private Set<String> notReadyReaders = new HashSet<>();
 
-    public App(App.Args args) throws Exception {
-        super(args);
+    public App(App.Args args, Logger logger) throws Exception {
+        super(args, logger);
 
         this.recordsFactory = new MyRecordsFactory(readers);
 
@@ -64,6 +54,8 @@ public class App extends Processor<App.Args> {
         // "fno_idlab_old/functions_idlab_classes_java_mapping.ttl",
         // "grel_java_mapping.ttl",
         // "functions_grel.ttl");
+        logger.info("Hello App!");
+        logger.fine("Hello App!");
     }
 
     Executor engine(QuadStore rmlStore) throws Exception {
@@ -72,8 +64,7 @@ public class App extends Processor<App.Args> {
     }
 
     private void executeOnce() throws Exception {
-
-        System.out.println("Checking execute once");
+        System.out.println("Checking execute once (really" + this.notReadyReaders.isEmpty() + ")");
         if (!this.notReadyReaders.isEmpty()) {
             return;
         }
@@ -88,7 +79,7 @@ public class App extends Processor<App.Args> {
                 System.out.println("default target is present");
                 var store = maps.get(new NamedNode("rmlmapper://default.store"));
                 var quads = store.toSortedString();
-                System.out.println(quads);
+                System.out.println("Got Quads " + quads);
                 this.arguments.defaultTarget.msg(ByteString.copyFromUtf8(quads));
             }
 
@@ -137,7 +128,8 @@ public class App extends Processor<App.Args> {
         public IWriter defaultTarget = null;
     }
 
-    public void init() {
+    @Override
+    public void init(Consumer<Void> callback) {
         System.out.println("Inside loader: " + this.getClass().getClassLoader());
         System.out.println("Thread loader: " + Thread.currentThread().getContextClassLoader());
 
@@ -159,28 +151,7 @@ public class App extends Processor<App.Args> {
         for (var input : this.arguments.sources) {
             this.setupSource(input);
         }
-    }
 
-    @Override
-    public void init(Consumer<Void> callback) {
-        this.openReader.add(this.arguments.mappings.id());
-        this.arguments.mappings.buffers().on(buffer -> {
-            if (buffer.isPresent()) {
-                InputStream inputStream = new ByteArrayInputStream(buffer.get().toByteArray());
-                try {
-                    QuadStore rmlStore = QuadStoreFactory.read(inputStream);
-                    convertToRml(rmlStore);
-                    this.rmlStores.add(rmlStore);
-                } catch (Exception e) {
-                }
-            } else {
-                this.close(this.arguments.mappings.id());
-            }
-        });
-
-        for (var input : this.arguments.sources) {
-            this.setupSource(input);
-        }
         callback.accept(null);
     }
 
@@ -198,6 +169,7 @@ public class App extends Processor<App.Args> {
                 this.close(source.reader.id());
             } else {
                 this.notReadyReaders.remove(source.reader.id());
+                System.out.println("Got data message from " + source.reader.id() + " I trigger " + source.triggers);
                 if (source.triggers) {
                     try {
                         this.executeOnce();
@@ -222,15 +194,9 @@ public class App extends Processor<App.Args> {
         }
     }
 
-    public void transform() {
-    }
-
     @Override
     public void transform(Consumer<Void> callback) {
         callback.accept(null);
-    }
-
-    public void produce() {
     }
 
     @Override

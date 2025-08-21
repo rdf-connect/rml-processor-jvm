@@ -16,7 +16,7 @@
     rdfc:processor <mapper>;
   ], [
     rdfc:instantiates rdfc:NodeRunner;
-    rdfc:processor <mappingReader>, <dataReader>;
+    rdfc:processor <mappingReader>, <dataReader>, <logger>;
   ].
 
 <mappingData> a rdfc:Reader, rdfc:Writer.

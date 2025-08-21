@@ -25,7 +25,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:datatype xsd:string;
   ], [
     sh:path rdfc:triggers;
-    sh:name "trigger";
+    sh:name "triggers";
     sh:maxCount 1;
     sh:datatype xsd:boolean;
   ].
