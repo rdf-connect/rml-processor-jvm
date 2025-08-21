@@ -11,7 +11,7 @@ repositories {
 	maven { url = 'https://jitpack.io' }
 }
 
-group = "io.github.rdf-connect"
+group = "org.example"
 version = "0.0.1"
 
 dependencies {
