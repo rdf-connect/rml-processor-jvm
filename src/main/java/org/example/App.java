@@ -10,9 +10,11 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
 
 import com.google.protobuf.ByteString;
 
@@ -78,9 +80,12 @@ public class App extends Processor<App.Args> {
             if (this.arguments.defaultTarget != null) {
                 System.out.println("default target is present");
                 var store = maps.get(new NamedNode("rmlmapper://default.store"));
-                var quads = store.toSortedString();
-                System.out.println("Got Quads " + quads);
-                this.arguments.defaultTarget.msg(ByteString.copyFromUtf8(quads));
+                StringWriter out = new StringWriter();
+
+                store.write(out, "turtle");
+                String trig = out.toString();
+                System.out.println("Got Quads " + trig);
+                this.arguments.defaultTarget.msg(ByteString.copyFromUtf8(trig));
             }
 
             for (var target : this.arguments.targets) {
@@ -88,9 +93,13 @@ public class App extends Processor<App.Args> {
                 var store = maps.get(new NamedNode(id));
                 System.out.println("target " + id + " is found " + store != null);
                 if (store != null) {
-                    var quads = store.toSortedString();
-                    System.out.println(quads);
-                    target.writer.msg(ByteString.copyFromUtf8(quads));
+                    StringWriter out = new StringWriter();
+
+                    store.write(out, "turtle");
+                    String trig = out.toString();
+
+                    System.out.println(trig);
+                    target.writer.msg(ByteString.copyFromUtf8(trig));
                 }
             }
         }
