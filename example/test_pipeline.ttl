@@ -5,31 +5,35 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#>.
 
 # <> owl:imports <../../jvm-runner/indexLocal.ttl>.
+# <> owl:imports <../build/libs/rml-processor-0.0.1-all.jar>.
 <> owl:imports <https://javadoc.jitpack.io/com/github/rdf-connect/jvm-runner/runner/master-SNAPSHOT/runner-master-SNAPSHOT-index.jar>.
 
+<> owl:imports <https://javadoc.jitpack.io/com/github/rdf-connect/rml-processor-jvm/master-SNAPSHOT/rml-processor-jvm-master-SNAPSHOT-all.jar>.
+#
 <> owl:imports <./node_modules/@rdfc/file-utils-processors-ts/processors.ttl>.
+
 <> owl:imports <./node_modules/@rdfc/js-runner/index.ttl>.
-<> owl:imports <../index.ttl>.
+#
 <> a rdfc:Pipeline;
   rdfc:consistsOf [
     rdfc:instantiates rdfc:JvmRunner;
     rdfc:processor <mapper>;
   ], [
     rdfc:instantiates rdfc:NodeRunner;
-    rdfc:processor <mappingReader>, <dataReader>, <logger>;
+    rdfc:processor <dataReader>, <mappingReader>, <logger>;
   ].
 
 <mappingData> a rdfc:Reader, rdfc:Writer.
 <mappingReader> a rdfc:GlobRead;
   rdfc:glob <./mapping.ttl>;
   rdfc:output <mappingData>;
-  rdfc:closeOnEnd "false".
+  rdfc:closeOnEnd "true".
 
 <data> a rdfc:Reader, rdfc:Writer.
 <dataReader> a rdfc:GlobRead;
   rdfc:glob <./data.json>;
   rdfc:output <data>;
-  rdfc:closeOnEnd "false".
+  rdfc:closeOnEnd "true".
 
 <default> a rdfc:Reader, rdfc:Writer.
 <mapper> a rdfc:RmlMapper;
@@ -39,7 +43,10 @@
     rdfc:reader <data>;
     rdfc:mappingId rdfc:source1;
   ];
-  rdfc:defaultTarget <default>.
+  rdfc:defaultTarget [
+    rdfc:writer <default>;
+    rdfc:format "trig";
+  ].
 
 <logger> a <Log>;
   rdfc:input <default>.

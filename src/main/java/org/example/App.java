@@ -13,12 +13,10 @@ import java.util.HashSet;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFDataMgr;
-
 import com.google.protobuf.ByteString;
 
 import be.ugent.idlab.knows.functions.agent.Agent;
+import be.ugent.idlab.knows.functions.agent.AgentFactory;
 import be.ugent.rml.Executor;
 import be.ugent.rml.StrictMode;
 import be.ugent.rml.conformer.MappingConformer;
@@ -35,11 +33,17 @@ public class App extends Processor<App.Args> {
 
     private List<QuadStore> rmlStores = new ArrayList<>();
     private RecordsFactory recordsFactory;
-    private String baseIRI = DEFAULT_BASE_IRI;
     private StrictMode strictMode = StrictMode.BEST_EFFORT;
     private Map<String, CacheReader> readers = new HashMap<>();
+
+    // cache the function agent for all incoming requests
     private Agent functionAgent = null;
+    // remember what to do, once all input streams are closed
     private Consumer<Void> closeCb;
+
+    // this indicates whether or not a trigger is fired but failed to resolve as not
+    // all sources are ready yet
+    private boolean wantsToExecute = false;
 
     private Set<String> openReader = new HashSet<>();
     private Set<String> notReadyReaders = new HashSet<>();
@@ -47,58 +51,65 @@ public class App extends Processor<App.Args> {
     public App(App.Args args, Logger logger) throws Exception {
         super(args, logger);
 
-        this.recordsFactory = new MyRecordsFactory(readers);
+        this.functionAgent = AgentFactory.createFromFnO(
+                "fno/functions_idlab.ttl", "fno/functions_idlab_classes_java_mapping.ttl",
+                "fno_idlab_old/functions_idlab.ttl", "fno_idlab_old/functions_idlab_classes_java_mapping.ttl",
+                "functions_grel.ttl",
+                "grel_java_mapping.ttl");
 
-        // this.functionAgent = AgentFactory.createFromFnO(
-        // "fno/functions_idlab.ttl",
-        // "fno/functions_idlab_classes_java_mapping.ttl",
-        // "fno_idlab_old/functions_idlab.ttl",
-        // "fno_idlab_old/functions_idlab_classes_java_mapping.ttl",
-        // "grel_java_mapping.ttl",
-        // "functions_grel.ttl");
-        logger.info("Hello App!");
-        logger.fine("Hello App!");
+        this.recordsFactory = new MyRecordsFactory(readers);
     }
 
     Executor engine(QuadStore rmlStore) throws Exception {
-        return new Executor(rmlStore, this.recordsFactory, null, this.baseIRI, this.strictMode,
+        return new Executor(rmlStore, this.recordsFactory, null, this.arguments.baseIRI, this.strictMode,
                 this.functionAgent);
     }
 
     private void executeOnce() throws Exception {
-        System.out.println("Checking execute once (really" + this.notReadyReaders.isEmpty() + ")");
+        if (this.arguments.waitForMappingClose) {
+            // Still waiting for mapping close
+            this.logger.fine("Wants to execute, but the mapping channel is not yet closed");
+            this.wantsToExecute = true;
+            return;
+        }
+
         if (!this.notReadyReaders.isEmpty()) {
+            this.logger.fine(
+                    "Wants to execute, but the not all channels have sent data, still missing: "
+                            + this.notReadyReaders);
+            // A triggered data reader wants to map, but not all sources are ready yet
+            this.wantsToExecute = true;
             return;
         }
 
         for (QuadStore rmlStore : this.rmlStores) {
             var engine = this.engine(rmlStore);
-            System.out.println("Got engine");
             var maps = engine.execute(null, true, null);
 
-            System.out.println("got mappings");
             if (this.arguments.defaultTarget != null) {
-                System.out.println("default target is present");
+                this.logger.fine("default target is present");
+
                 var store = maps.get(new NamedNode("rmlmapper://default.store"));
                 StringWriter out = new StringWriter();
 
-                store.write(out, "turtle");
+                store.write(out, this.arguments.defaultTarget.format);
                 String trig = out.toString();
-                System.out.println("Got Quads " + trig);
-                this.arguments.defaultTarget.msg(ByteString.copyFromUtf8(trig));
+
+                this.logger.fine("writing " + trig);
+                this.arguments.defaultTarget.writer.msg(ByteString.copyFromUtf8(trig));
             }
 
             for (var target : this.arguments.targets) {
                 var id = target.mappingId != null ? target.mappingId : target.writer.id();
                 var store = maps.get(new NamedNode(id));
-                System.out.println("target " + id + " is found " + store != null);
+                this.logger.fine("target " + id + " is found " + (store != null));
                 if (store != null) {
                     StringWriter out = new StringWriter();
 
-                    store.write(out, "turtle");
+                    store.write(out, target.format);
                     String trig = out.toString();
 
-                    System.out.println(trig);
+                    this.logger.fine("writing " + trig);
                     target.writer.msg(ByteString.copyFromUtf8(trig));
                 }
             }
@@ -110,10 +121,10 @@ public class App extends Processor<App.Args> {
         try {
             boolean conversionNeeded = conformer.conform();
             if (conversionNeeded) {
-                System.out.println("Conversion to RML was needed.");
+                this.logger.fine("Conversion to RML was needed.");
             }
         } catch (Exception e) {
-            System.out.println("Failed to make mapping file conformant to RML spec.");
+            this.logger.severe("Failed to make mapping file conformant to RML spec.");
             throw e; // rethrow the exception to be caught by the test
         }
     }
@@ -127,22 +138,23 @@ public class App extends Processor<App.Args> {
     static class Target {
         public IWriter writer;
         public String mappingId = null;
+        public String format = "turtle";
     }
 
     static class Args {
         public IReader mappings;
-        // public boolean waitForMappingClose;
+        public boolean waitForMappingClose = false;
         public List<Source> sources;
         public List<Target> targets;
-        public IWriter defaultTarget = null;
+        public Target defaultTarget = null;
+        public String baseIRI = DEFAULT_BASE_IRI;
     }
 
     @Override
     public void init(Consumer<Void> callback) {
-        System.out.println("Inside loader: " + this.getClass().getClassLoader());
-        System.out.println("Thread loader: " + Thread.currentThread().getContextClassLoader());
-
         this.openReader.add(this.arguments.mappings.id());
+
+        this.notReadyReaders.add(this.arguments.mappings.id());
         this.arguments.mappings.buffers().on(buffer -> {
             if (buffer.isPresent()) {
                 InputStream inputStream = new ByteArrayInputStream(buffer.get().toByteArray());
@@ -152,8 +164,26 @@ public class App extends Processor<App.Args> {
                     this.rmlStores.add(rmlStore);
                 } catch (Exception e) {
                 }
+
+                this.notReadyReaders.remove(this.arguments.mappings.id());
+                if (this.wantsToExecute) {
+                    try {
+                        this.executeOnce();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             } else {
                 this.close(this.arguments.mappings.id());
+
+                if (this.arguments.waitForMappingClose) {
+                    this.arguments.waitForMappingClose = false;
+                    try {
+                        this.executeOnce();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         });
 
@@ -165,8 +195,8 @@ public class App extends Processor<App.Args> {
     }
 
     private void setupSource(Source source) {
+        this.logger.fine("Setup source " + source.reader.id());
 
-        System.out.println("Setup source " + source.reader.id());
         this.notReadyReaders.add(source.reader.id());
         this.openReader.add(source.reader.id());
 
@@ -178,23 +208,40 @@ public class App extends Processor<App.Args> {
                 this.close(source.reader.id());
             } else {
                 this.notReadyReaders.remove(source.reader.id());
-                System.out.println("Got data message from " + source.reader.id() + " I trigger " + source.triggers);
+
+                this.logger.fine("Got data message from " + source.reader.id() + " I trigger " + source.triggers);
                 if (source.triggers) {
                     try {
                         this.executeOnce();
                     } catch (Exception e) {
-                        System.out.println("Execute Once failed " + e);
+                        this.logger.severe("Execute Once failed " + e);
                     }
+                } else {
+                    // This source doesn't trigger, but a triggering source wanted to trigger
+                    // already
+                    if (this.wantsToExecute) {
+                        this.wantsToExecute = false;
+                        try {
+                            this.executeOnce();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
                 }
             }
         });
     }
 
     private void close(String id) {
-        System.out.println("Closing " + id);
         this.openReader.remove(id);
         if (this.openReader.isEmpty()) {
-            System.out.println("everything is empty");
+            this.logger.fine("Starting shutdown");
+
+            if (this.arguments.defaultTarget != null) {
+                this.arguments.defaultTarget.writer.close();
+            }
+
             for (var writer : this.arguments.targets) {
                 writer.writer.close();
             }

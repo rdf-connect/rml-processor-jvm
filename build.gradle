@@ -1,8 +1,7 @@
 plugins {
-    id 'application'
+    id 'java'
     id 'maven-publish'
-    // id 'com.github.johnrengelman.shadow' version '8.1.1'
-  id "io.github.goooler.shadow" version "8.1.8"
+    id "io.github.goooler.shadow" version "8.1.8"
 }
 
 repositories {
@@ -30,6 +29,9 @@ shadowJar {
         exclude(dependency('com.google.protobuf:.*'))
     }
     zip64 true
+    from("index.ttl") {
+        into("") // root of jar
+    }
 }
 configurations.all {
     resolutionStrategy {
@@ -44,24 +46,11 @@ java {
     }
 }
 
-application {
-    // Define the main class for the application.
-    mainClass = 'org.example.App'
-}
-
-tasks.register("indexJar", Jar) {
-    archiveBaseName.set("index")
-    archiveClassifier.set("index")
-    from("index.ttl")
-}
-
 publishing {
     publications {
         maven(MavenPublication) {
             // fat jar
             artifact(tasks.shadowJar)
-            // plain file
-            artifact(tasks.indexJar) 
         }
     }
 }
@@ -69,3 +58,8 @@ publishing {
 configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
+
+build {
+    dependsOn shadowJar
+}
+

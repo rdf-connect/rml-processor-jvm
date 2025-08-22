@@ -16,12 +16,10 @@ public class ReaderAccess implements Access {
         this.id = id;
         this.reader = reader;
         this.type = type;
-        System.out.println("Creating reader access");
     }
 
     @Override
     public InputStream getInputStream() throws Exception {
-        System.out.println("Get Input Stream " + this.id);
         return new ByteArrayInputStream(this.reader.last());
     }
 
