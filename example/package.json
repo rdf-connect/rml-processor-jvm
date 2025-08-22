@@ -2,13 +2,14 @@
   "name": "example",
   "version": "1.0.0",
   "main": "index.js",
-    "type": "module",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@rdfc/file-utils-processors-ts": "^0.7.0-alpha.1",
-    "@rdfc/js-runner": "^2.0.0-alpha.8"
+    "@rdfc/js-runner": "^2.0.0-alpha.8",
+    "@rdfc/orchestrator-js": "^1.0.2"
   },
   "keywords": [],
   "author": "",

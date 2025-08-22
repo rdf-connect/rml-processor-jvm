@@ -157,12 +157,14 @@ public class App extends Processor<App.Args> {
         this.notReadyReaders.add(this.arguments.mappings.id());
         this.arguments.mappings.buffers().on(buffer -> {
             if (buffer.isPresent()) {
+                this.logger.fine("Got rml mapping!");
                 InputStream inputStream = new ByteArrayInputStream(buffer.get().toByteArray());
                 try {
                     QuadStore rmlStore = QuadStoreFactory.read(inputStream);
                     convertToRml(rmlStore);
                     this.rmlStores.add(rmlStore);
                 } catch (Exception e) {
+                    e.printStackTrace();
                 }
 
                 this.notReadyReaders.remove(this.arguments.mappings.id());
