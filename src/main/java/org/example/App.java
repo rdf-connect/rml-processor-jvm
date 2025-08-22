@@ -65,7 +65,7 @@ public class App extends Processor<App.Args> {
                 this.functionAgent);
     }
 
-    private void executeOnce() throws Exception {
+    private void executeOnce() {
         if (this.arguments.waitForMappingClose) {
             // Still waiting for mapping close
             this.logger.fine("Wants to execute, but the mapping channel is not yet closed");
@@ -82,36 +82,46 @@ public class App extends Processor<App.Args> {
             return;
         }
 
+        this.logger.fine("starting to execute on " + this.rmlStores.size() + " stores");
+
         for (QuadStore rmlStore : this.rmlStores) {
-            var engine = this.engine(rmlStore);
-            var maps = engine.execute(null, true, null);
+            try {
+                var engine = this.engine(rmlStore);
+                this.logger.fine("got engine");
+                var maps = engine.execute(null, true, null);
+                this.logger.fine("got maps " + maps.keySet());
 
-            if (this.arguments.defaultTarget != null) {
-                this.logger.fine("default target is present");
+                if (this.arguments.defaultTarget != null) {
+                    this.logger.fine("default target is present");
 
-                var store = maps.get(new NamedNode("rmlmapper://default.store"));
-                StringWriter out = new StringWriter();
-
-                store.write(out, this.arguments.defaultTarget.format);
-                String trig = out.toString();
-
-                this.logger.fine("writing " + trig);
-                this.arguments.defaultTarget.writer.msg(ByteString.copyFromUtf8(trig));
-            }
-
-            for (var target : this.arguments.targets) {
-                var id = target.mappingId != null ? target.mappingId : target.writer.id();
-                var store = maps.get(new NamedNode(id));
-                this.logger.fine("target " + id + " is found " + (store != null));
-                if (store != null) {
+                    var store = maps.get(new NamedNode("rmlmapper://default.store"));
                     StringWriter out = new StringWriter();
 
-                    store.write(out, target.format);
+                    store.write(out, this.arguments.defaultTarget.format);
                     String trig = out.toString();
 
                     this.logger.fine("writing " + trig);
-                    target.writer.msg(ByteString.copyFromUtf8(trig));
+                    this.arguments.defaultTarget.writer.msg(ByteString.copyFromUtf8(trig));
                 }
+
+                for (var target : this.arguments.targets) {
+                    var id = target.mappingId != null ? target.mappingId : target.writer.id();
+                    var store = maps.get(new NamedNode(id));
+                    this.logger.fine("target " + id + " is found " + (store != null));
+                    if (store != null) {
+                        StringWriter out = new StringWriter();
+
+                        store.write(out, target.format);
+                        String trig = out.toString();
+
+                        this.logger.fine("writing " + trig);
+                        target.writer.msg(ByteString.copyFromUtf8(trig));
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("error happened during mapping");
+                this.logger.severe("error happened during mapping");
+                e.printStackTrace();
             }
         }
     }
@@ -169,22 +179,15 @@ public class App extends Processor<App.Args> {
 
                 this.notReadyReaders.remove(this.arguments.mappings.id());
                 if (this.wantsToExecute) {
-                    try {
-                        this.executeOnce();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    this.executeOnce();
                 }
             } else {
+                this.logger.fine("Closing rml stream!");
                 this.close(this.arguments.mappings.id());
 
                 if (this.arguments.waitForMappingClose) {
                     this.arguments.waitForMappingClose = false;
-                    try {
-                        this.executeOnce();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    this.executeOnce();
                 }
             }
         });
@@ -213,21 +216,13 @@ public class App extends Processor<App.Args> {
 
                 this.logger.fine("Got data message from " + source.reader.id() + " I trigger " + source.triggers);
                 if (source.triggers) {
-                    try {
-                        this.executeOnce();
-                    } catch (Exception e) {
-                        this.logger.severe("Execute Once failed " + e);
-                    }
+                    this.executeOnce();
                 } else {
                     // This source doesn't trigger, but a triggering source wanted to trigger
                     // already
                     if (this.wantsToExecute) {
                         this.wantsToExecute = false;
-                        try {
-                            this.executeOnce();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                        this.executeOnce();
                     }
 
                 }
@@ -236,6 +231,7 @@ public class App extends Processor<App.Args> {
     }
 
     private void close(String id) {
+        this.logger.fine("Closing id " + id);
         this.openReader.remove(id);
         if (this.openReader.isEmpty()) {
             this.logger.fine("Starting shutdown");
