@@ -1,0 +1,162 @@
+# RmlMapper Processor for RDF Connect
+
+`RmlMapper` is a processor for the RDF-Connect streaming pipeline framework.  
+It allows you to map data from sources to targets using RML mappings, supporting multiple sources and targets as well as a default target.
+
+
+## Overview
+
+- Define structured mappings between input data sources and output targets.
+- Supports optional triggers and default targets.
+
+
+## Configuration
+
+### Sources
+
+Each source must provide:
+
+| Property     | Type          | Description                          | Required |
+|-------------|---------------|---------------------------------------|----------|
+| `rdfc:reader`    | `rdfc:Reader` | Component that reads data             | ✅       |
+| `rdfc:mappingId` | `xsd:string`  | Optional identifier used in the mapping | ⚪       |
+| `rdfc:triggers`  | `xsd:boolean` | Optional flag to trigger mapping      | ⚪       |
+
+
+Note: at least one source should have `rdfc:triggers "true"`.
+
+### `Target
+
+Each target must provide:
+
+| Property  | Type          | Description                                        | Required |
+|-----------|---------------|----------------------------------------------------|----------|
+| `rdfc:writer`    | `rdfc:Writer` | Component that writes data to target        | ✅       |
+| `rdfc:mappingId` | `xsd:string`  | Optional identifier used in the mapping     | ⚪       |
+| `rdfc:format`    | `xsd:string`  | Optional output format ("turtle" or "trig") | ⚪       |
+
+### `DefaultTarget`
+
+| Property  | Type          | Description                                      | Required |
+|-----------|---------------|--------------------------------------------------|----------|
+| `rdfc:writer`  | `rdfc:Writer` | Writer for unmapped outputs                 | ✅       |
+| `rdfc:format`  | `xsd:string`  | Optional output format ("turtle" or "trig") | ⚪       |
+
+
+### RmlMapper Properties
+
+| Property                   | Type           | Description                                              | Required |
+|----------------------------|----------------|----------------------------------------------------------|----------|
+| `rdfc:mappings`            | `rdfc:Reader`  | Mappings to apply                                        | ✅       |
+| `rdfc:baseIRI`             | `xsd:string`   | Optional base IRI for resolving relative IRIs            | ⚪       |
+| `rdfc:waitForMappingClose` | `xsd:boolean`  | Wait for mapping input completion before processing data | ⚪       |
+| `rdfc:defaultTarget`       | `DefaultTarget`| Optional default target for unmapped outputs             | ⚪       |
+| `rdfc:source`              | `Source`       | Input sources (multiple allowed)                         | ⚪       |
+| `rdfc:target`              | `Target`       | Output targets (multiple allowed)                        | ⚪       |
+
+---
+
+## Compact Example
+
+Example RML Mapper processor definition.
+This reads `mapping.ttl` and `data.json`, both `rdfc:target1` and the default target write their data to `<default>`.
+```turtle
+<mappingData> a rdfc:Reader, rdfc:Writer.
+<mappingReader> a rdfc:GlobRead;
+  rdfc:glob <./mapping.ttl>;
+  rdfc:output <mappingData>;
+  rdfc:closeOnEnd "false".
+
+<data> a rdfc:Reader, rdfc:Writer.
+<dataReader> a rdfc:GlobRead;
+  rdfc:glob <./data.json>;
+  rdfc:output <data>;
+  rdfc:closeOnEnd "false".
+
+<default> a rdfc:Reader, rdfc:Writer.
+<mapper> a rdfc:RmlMapper;
+  rdfc:mappings <mappingData>;
+  rdfc:source [
+    rdfc:triggers true;
+    rdfc:reader <data>;
+    rdfc:mappingId rdfc:source1;
+  ];
+  rdfc:target [
+    rdfc:writer <default>;
+    rdfc:format "trig";
+    rdfc:mappingId rdfc:target1;
+  ];
+  rdfc:defaultTarget [
+    rdfc:writer <default>;
+    rdfc:format "trig";
+  ].
+```
+
+Example RML mapping file definition.
+```turtle
+<TriplesMap1> a rr:TriplesMap;
+  rml:logicalSource [
+    rml:source [
+      a rdfc:Source;
+      # get input from rdfc:source1
+      # which is mapped with rdfc:mappingId to <data> in the pipeline
+      rdfc:reader rdfc:source1; 
+    ];
+    rml:referenceFormulation ql:JSONPath;
+    rml:iterator "$.students[*]";
+  ];
+  rr:subjectMap [ rr:template "http://example.com/{Name}" ];
+  rr:predicateObjectMap [
+    rr:predicate foaf:name;
+    rr:objectMap [
+      rml:reference "Name";
+      # write this triple to rdfc:target1
+      # which is mapped with rdfc:mappingId to <default> in the pipeline
+      rml:logicalTarget rdfc:target1;
+    ];
+  ].
+```
+
+
+
+## Install
+Configure your `build.gradle` with JitPack and add the dependency
+
+```gradle
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+    maven { url = uri("https://jitpack.io") }  // if your processors are on GitHub
+}
+dependencies {
+    implementation("com.github.rdf-connect:rml-processor-jvm:master-SNAPSHOT:all")
+}
+
+tasks.register('copyPlugins', Copy) {
+    from configurations.runtimeClasspath
+    into "$buildDir/plugins"
+}
+```
+
+Install the jar.
+```
+gradle copyPlugins
+```
+
+This requires the jvm-runner in the pipeline.
+```turtle
+<> owl:imports <https://javadoc.jitpack.io/com/github/rdf-connect/jvm-runner/runner/master-SNAPSHOT/runner-master-SNAPSHOT-index.jar>.
+<> owl:imports <./build/plugins/rml-processor-jvm-master-SNAPSHOT-all.jar>.
+
+<> a rdfc:Pipeline;
+  rdfc:consistsOf [
+    rdfc:instantiates rdfc:JvmRunner;
+    rdfc:processor <mapper>;
+  ].
+```
+
+
+
