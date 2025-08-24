@@ -12,7 +12,7 @@ It allows you to map data from sources to targets using RML mappings, supporting
 
 ## Configuration
 
-### Sources
+### `Source`
 
 Each source must provide:
 
@@ -25,7 +25,7 @@ Each source must provide:
 
 Note: at least one source should have `rdfc:triggers "true"`.
 
-### `Target
+### `Target`
 
 Each target must provide:
 
@@ -54,7 +54,6 @@ Each target must provide:
 | `rdfc:source`              | `Source`       | Input sources (multiple allowed)                         | ⚪       |
 | `rdfc:target`              | `Target`       | Output targets (multiple allowed)                        | ⚪       |
 
----
 
 ## Compact Example
 
