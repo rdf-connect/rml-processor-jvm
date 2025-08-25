@@ -22,13 +22,13 @@
 <mappingReader> a rdfc:GlobRead;
   rdfc:glob <./mapping.ttl>;
   rdfc:output <mappingData>;
-  rdfc:closeOnEnd "false".
+  rdfc:closeOnEnd "true".
 
 <data> a rdfc:Reader, rdfc:Writer.
 <dataReader> a rdfc:GlobRead;
   rdfc:glob <./data.json>;
   rdfc:output <data>;
-  rdfc:closeOnEnd "false".
+  rdfc:closeOnEnd "true".
 
 <default> a rdfc:Reader, rdfc:Writer.
 <mapper> a rdfc:RmlMapper;
