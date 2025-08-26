@@ -3,6 +3,67 @@
 `RmlMapper` is a processor for the RDF-Connect streaming pipeline framework.  
 It allows you to map data from sources to targets using RML mappings, supporting multiple sources and targets as well as a default target.
 
+## Usage in RDF-Connect
+
+### Get the jar
+
+Download the jar with, or install it with gradle.
+
+**Download:**
+
+```bash
+wget 'jitpack.io/com/github/rdf-connect/rml-processor-jvm/master-SNAPSHOT/rml-processor-jvm-master-SNAPSHOT-all.jar'
+```
+
+**Gradle:**
+
+Configure your `build.gradle` with JitPack and add the dependency
+
+```gradle
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+    maven { url = uri("https://jitpack.io") }  // if your processors are on GitHub
+}
+dependencies {
+    implementation("com.github.rdf-connect:rml-processor-jvm:master-SNAPSHOT:all")
+}
+
+tasks.register('copyPlugins', Copy) {
+    from configurations.runtimeClasspath
+    into "$buildDir/plugins"
+}
+```
+
+Install the jar.
+```
+gradle copyPlugins
+```
+
+### Pipeline example 
+
+```turtle
+# Import the jvm-runner
+<> owl:imports <https://javadoc.jitpack.io/com/github/rdf-connect/jvm-runner/runner/master-SNAPSHOT/runner-master-SNAPSHOT-index.jar>.
+
+# Import the downloaded or installed jar
+<> owl:imports <./rml-processor-jvm-master-SNAPSHOT-all.jar>.
+# or
+<> owl:imports <./build/plugins/rml-processor-jvm-master-SNAPSHOT-all.jar>.
+
+# Link the mapper and the jvm runner in the pipeline
+<> a rdfc:Pipeline;
+  rdfc:consistsOf [
+    rdfc:instantiates rdfc:JvmRunner;
+    rdfc:processor <mapper>;
+  ].
+
+# Don't forget to defined <mapper>
+```
+
 
 ## Overview
 
@@ -117,45 +178,6 @@ Example RML mapping file definition.
 ```
 
 
-
-## Install
-Configure your `build.gradle` with JitPack and add the dependency
-
-```gradle
-plugins {
-    id 'java'
-}
-
-repositories {
-    mavenCentral()
-    maven { url = uri("https://jitpack.io") }  // if your processors are on GitHub
-}
-dependencies {
-    implementation("com.github.rdf-connect:rml-processor-jvm:master-SNAPSHOT:all")
-}
-
-tasks.register('copyPlugins', Copy) {
-    from configurations.runtimeClasspath
-    into "$buildDir/plugins"
-}
-```
-
-Install the jar.
-```
-gradle copyPlugins
-```
-
-This requires the jvm-runner in the pipeline.
-```turtle
-<> owl:imports <https://javadoc.jitpack.io/com/github/rdf-connect/jvm-runner/runner/master-SNAPSHOT/runner-master-SNAPSHOT-index.jar>.
-<> owl:imports <./build/plugins/rml-processor-jvm-master-SNAPSHOT-all.jar>.
-
-<> a rdfc:Pipeline;
-  rdfc:consistsOf [
-    rdfc:instantiates rdfc:JvmRunner;
-    rdfc:processor <mapper>;
-  ].
-```
 
 
 
