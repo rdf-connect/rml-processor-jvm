@@ -28,7 +28,7 @@ shadowJar {
         exclude(dependency('com.github.rdf-connect.jvm-runner:types:.*'))
         exclude(dependency('com.google.protobuf:.*'))
     }
-    zip64 true
+    zip64 = true
     from("index.ttl") {
         into("") // root of jar
     }

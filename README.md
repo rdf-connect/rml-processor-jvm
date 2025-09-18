@@ -177,6 +177,15 @@ Example RML mapping file definition.
   ].
 ```
 
+## Development
+
+### Build Instructions
+
+To build the processor jar that includes the processor and its descriptor, use the Shadow plugin to produce a fat JAR using the following Gradle command:
+
+```bash
+gradle shadowJar
+```
 
 
 
