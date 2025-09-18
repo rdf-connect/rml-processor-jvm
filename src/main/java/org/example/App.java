@@ -4,6 +4,7 @@
 package org.example;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -95,13 +96,14 @@ public class App extends Processor<App.Args> {
                     this.logger.fine("default target is present");
 
                     var store = maps.get(new NamedNode("rmlmapper://default.store"));
-                    StringWriter out = new StringWriter();
 
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
                     store.write(out, this.arguments.defaultTarget.format);
-                    String trig = out.toString();
+                    String trig = out.toString(StandardCharsets.UTF_8);
 
                     this.logger.fine("writing " + trig);
                     this.arguments.defaultTarget.writer.msg(ByteString.copyFromUtf8(trig));
+
                 }
 
                 for (var target : this.arguments.targets) {
@@ -109,10 +111,10 @@ public class App extends Processor<App.Args> {
                     var store = maps.get(new NamedNode(id));
                     this.logger.fine("target " + id + " is found " + (store != null));
                     if (store != null) {
-                        StringWriter out = new StringWriter();
+                        ByteArrayOutputStream out = new ByteArrayOutputStream();
 
                         store.write(out, target.format);
-                        String trig = out.toString();
+                        String trig = out.toString(StandardCharsets.UTF_8);
 
                         this.logger.fine("writing " + trig);
                         target.writer.msg(ByteString.copyFromUtf8(trig));
@@ -120,7 +122,7 @@ public class App extends Processor<App.Args> {
                 }
             } catch (Exception e) {
                 System.out.println("error happened during mapping");
-                this.logger.severe("error happened during mapping");
+                this.logger.severe("error happened during mapping: " + e.getMessage());
                 e.printStackTrace();
             }
         }
