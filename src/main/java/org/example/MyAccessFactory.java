@@ -50,7 +50,7 @@ public class MyAccessFactory extends AccessFactory {
 
                             type = Utils
                                     .getObjectsFromQuads(
-                                            rmlStore.getQuads(source, new NamedNode(Ns.RDFC + "type"), null))
+                                            rmlStore.getQuads(source, new NamedNode(Ns.RDFC + "format"), null))
                                     .get(0).getValue();
                         } catch (Exception e) {
 
