@@ -10,6 +10,7 @@
     rml:source [
       a rdfc:Source;
       rdfc:reader rdfc:source1;
+      rdfc:mimeType "application/json";
     ];
     rml:referenceFormulation ql:JSONPath;
     rml:iterator "$.students[*]";

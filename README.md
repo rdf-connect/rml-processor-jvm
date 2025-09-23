@@ -127,7 +127,7 @@ A logical source MUST define the following three parameters:
 
 * Type — The type MUST be `rdfc:Source`.
 * Reader — The property `rdfc:reader` MUST map either to the channel identifier or to the value of the `rdfc:mappingId` property.
-* Format — The property `rdfc:format` MUST specify the MIME type of the incoming data.
+* Mime Type — The property `rdfc:mimeType` MUST specify the MIME type of the incoming data.
 
 
 #### Logical Target
