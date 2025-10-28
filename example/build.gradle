@@ -6,7 +6,7 @@ repositories {
 }
 dependencies {
     implementation("com.github.rdf-connect:rml-processor-jvm:master-SNAPSHOT:all")
-        implementation 'com.github.rdf-connect.jvm-runner:runner:master-SNAPSHOT:all'
+        implementation 'com.github.rdf-connect.jvm-runner:runner:80285f5:all'
 }
 
 tasks.register('copyPlugins', Copy) {

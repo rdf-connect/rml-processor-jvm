@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.HashSet;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import com.google.protobuf.ByteString;
@@ -25,6 +25,7 @@ import be.ugent.rml.records.RecordsFactory;
 import be.ugent.rml.store.QuadStore;
 import be.ugent.rml.store.QuadStoreFactory;
 import be.ugent.rml.term.NamedNode;
+import be.ugent.rml.term.Term;
 import io.github.rdfc.IReader;
 import io.github.rdfc.IWriter;
 import io.github.rdfc.Processor;
@@ -40,7 +41,7 @@ public class App extends Processor<App.Args> {
     // cache the function agent for all incoming requests
     private Agent functionAgent = null;
     // remember what to do, once all input streams are closed
-    private Consumer<Void> closeCb;
+    private CompletableFuture<Void> closeFut;
 
     // this indicates whether or not a trigger is fired but failed to resolve as not
     // all sources are ready yet
@@ -66,24 +67,38 @@ public class App extends Processor<App.Args> {
                 this.functionAgent);
     }
 
-    private void executeOnce() {
+    /**
+     * Tries to execute the current configuration (found mapping files).
+     * If the configuration allows, the RML mapping will be executed with the data
+     * and send the correct triples to the correct output channel.
+     * 
+     * @return the future that resolves when each output is succesfully sent.
+     * @note Please await this future before starting a new execution to relieve the
+     *       backpressure.
+     */
+    private CompletableFuture<Void> executeOnce() {
+        System.out.println("Execute Once");
+
         if (this.arguments.waitForMappingClose) {
             // Still waiting for mapping close
             this.logger.fine("Wants to execute, but the mapping channel is not yet closed");
             this.wantsToExecute = true;
-            return;
+            return CompletableFuture.completedFuture(null);
         }
 
         if (!this.notReadyReaders.isEmpty()) {
             this.logger.fine(
-                    "Wants to execute, but the not all channels have sent data, still missing: "
+                    "Wants to execute, but not all channels have sent data, still missing: "
                             + this.notReadyReaders);
             // A triggered data reader wants to map, but not all sources are ready yet
             this.wantsToExecute = true;
-            return;
+            return CompletableFuture.completedFuture(null);
         }
 
         this.logger.fine("starting to execute on " + this.rmlStores.size() + " stores");
+
+        ArrayList<CompletableFuture<Void>> futures = new ArrayList<>();
+        System.out.println("Awaiting " + this.arguments.targets.size() + " writes");
 
         for (QuadStore rmlStore : this.rmlStores) {
             try {
@@ -92,39 +107,67 @@ public class App extends Processor<App.Args> {
                 var maps = engine.execute(null, true, null);
                 this.logger.fine("got maps " + maps.keySet());
 
-                if (this.arguments.defaultTarget != null) {
-                    this.logger.fine("default target is present");
-
-                    var store = maps.get(new NamedNode("rmlmapper://default.store"));
-
-                    ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    store.write(out, this.arguments.defaultTarget.format);
-                    String trig = out.toString(StandardCharsets.UTF_8);
-
-                    this.logger.fine("writing " + trig);
-                    this.arguments.defaultTarget.writer.msg(ByteString.copyFromUtf8(trig));
-
-                }
+                this.outputDefaultTarget(maps, futures);
 
                 for (var target : this.arguments.targets) {
-                    var id = target.mappingId != null ? target.mappingId : target.writer.id();
-                    var store = maps.get(new NamedNode(id));
-                    this.logger.fine("target " + id + " is found " + (store != null));
-                    if (store != null) {
-                        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-                        store.write(out, target.format);
-                        String trig = out.toString(StandardCharsets.UTF_8);
-
-                        this.logger.fine("writing " + trig);
-                        target.writer.msg(ByteString.copyFromUtf8(trig));
-                    }
+                    outputToTarget(maps, target, futures);
                 }
+
             } catch (Exception e) {
                 System.out.println("error happened during mapping");
                 this.logger.severe("error happened during mapping: " + e.getMessage());
                 e.printStackTrace();
             }
+        }
+
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(_void -> {
+            System.out.println("All settled!");
+        });
+    }
+
+    private void outputToTarget(Map<Term, QuadStore> maps, Target target, ArrayList<CompletableFuture<Void>> futures)
+            throws Exception {
+        var id = target.mappingId != null ? target.mappingId : target.writer.id();
+        var store = maps.get(new NamedNode(id));
+        this.logger.fine("target " + id + " is found " + (store != null));
+        if (store != null) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+            store.write(out, target.format);
+            String trig = out.toString(StandardCharsets.UTF_8);
+
+            this.logger.fine("writing " + trig);
+
+            CompletableFuture<Void> stream = target.writer.stream().thenCompose(st -> {
+                System.out.println("Sending first part");
+                return st.chunk(ByteString.copyFromUtf8(trig.substring(0, 2))).thenApply(_void -> st);
+            }).thenCompose(st -> {
+                System.out.println("Sending second part");
+                return st.chunk(ByteString.copyFromUtf8(trig.substring(2))).thenApply(_o -> st);
+            }).thenCompose(st -> {
+                System.out.println("Closing streaming msg");
+                return st.close();
+            });
+
+            futures.add(stream);
+            // futures.add(target.writer.chunk(ByteString.copyFromUtf8(trig)));
+        }
+    }
+
+    private void outputDefaultTarget(Map<Term, QuadStore> maps,
+            ArrayList<CompletableFuture<Void>> futures) throws Exception {
+        if (this.arguments.defaultTarget != null) {
+            this.logger.fine("default target is present");
+
+            var store = maps.get(new NamedNode("rmlmapper://default.store"));
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            store.write(out, this.arguments.defaultTarget.format);
+            String trig = out.toString(StandardCharsets.UTF_8);
+
+            this.logger.fine("writing " + trig);
+            futures.add(
+                    this.arguments.defaultTarget.writer.chunk(ByteString.copyFromUtf8(trig)));
         }
     }
 
@@ -163,42 +206,15 @@ public class App extends Processor<App.Args> {
     }
 
     @Override
-    public void init(Consumer<Void> callback) {
+    public CompletableFuture<?> init() {
         this.openReader.add(this.arguments.mappings.id());
-
         this.notReadyReaders.add(this.arguments.mappings.id());
-        this.arguments.mappings.buffers().on(buffer -> {
-            if (buffer.isPresent()) {
-                this.logger.fine("Got rml mapping!");
-                InputStream inputStream = new ByteArrayInputStream(buffer.get().toByteArray());
-                try {
-                    QuadStore rmlStore = QuadStoreFactory.read(inputStream);
-                    convertToRml(rmlStore);
-                    this.rmlStores.add(rmlStore);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                this.notReadyReaders.remove(this.arguments.mappings.id());
-                if (this.wantsToExecute) {
-                    this.executeOnce();
-                }
-            } else {
-                this.logger.fine("Closing rml stream!");
-                this.close(this.arguments.mappings.id());
-
-                if (this.arguments.waitForMappingClose) {
-                    this.arguments.waitForMappingClose = false;
-                    this.executeOnce();
-                }
-            }
-        });
 
         for (var input : this.arguments.sources) {
             this.setupSource(input);
         }
 
-        callback.accept(null);
+        return CompletableFuture.completedFuture(null);
     }
 
     private void setupSource(Source source) {
@@ -211,24 +227,22 @@ public class App extends Processor<App.Args> {
         this.readers.put(id, new CacheReader(source.reader));
 
         source.reader.buffers().on(buf -> {
-            if (buf.isEmpty()) {
-                this.close(source.reader.id());
+            this.notReadyReaders.remove(source.reader.id());
+            this.logger.fine("Got data message from " + source.reader.id() + " I trigger " + source.triggers);
+
+            if (source.triggers) {
+                return this.executeOnce();
             } else {
-                this.notReadyReaders.remove(source.reader.id());
-
-                this.logger.fine("Got data message from " + source.reader.id() + " I trigger " + source.triggers);
-                if (source.triggers) {
-                    this.executeOnce();
-                } else {
-                    // This source doesn't trigger, but a triggering source wanted to trigger
-                    // already
-                    if (this.wantsToExecute) {
-                        this.wantsToExecute = false;
-                        this.executeOnce();
-                    }
-
+                // This source doesn't trigger, but a triggering source wanted to trigger
+                // already
+                if (this.wantsToExecute) {
+                    this.wantsToExecute = false;
+                    return this.executeOnce();
                 }
             }
+            return CompletableFuture.completedFuture(null);
+        }).thenAccept(_void -> {
+            this.close(source.reader.id());
         });
     }
 
@@ -238,25 +252,59 @@ public class App extends Processor<App.Args> {
         if (this.openReader.isEmpty()) {
             this.logger.fine("Starting shutdown");
 
+            List<CompletableFuture<Void>> closingFutures = new ArrayList<>();
+
             if (this.arguments.defaultTarget != null) {
-                this.arguments.defaultTarget.writer.close();
+                closingFutures.add(this.arguments.defaultTarget.writer.close());
             }
 
             for (var writer : this.arguments.targets) {
-                writer.writer.close();
+                closingFutures.add(writer.writer.close());
             }
 
-            this.closeCb.accept(null);
+            CompletableFuture.allOf(closingFutures.toArray(new CompletableFuture[0])).thenAccept(_void -> {
+                this.closeFut.complete(null);
+            });
         }
     }
 
     @Override
-    public void transform(Consumer<Void> callback) {
-        callback.accept(null);
+    public CompletableFuture<?> transform() {
+        return this.arguments.mappings.buffers().on(buffer -> {
+            this.logger.fine("Got RML mapping!");
+            InputStream inputStream = new ByteArrayInputStream(buffer.toByteArray());
+            try {
+                QuadStore rmlStore = QuadStoreFactory.read(inputStream);
+                convertToRml(rmlStore);
+                this.rmlStores.add(rmlStore);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            this.notReadyReaders.remove(this.arguments.mappings.id());
+            if (this.wantsToExecute) {
+                return this.executeOnce();
+            } else {
+                return CompletableFuture.completedFuture(null);
+            }
+        }).thenCompose(_void -> {
+            this.logger.fine("No more mapping files coming in");
+            if (this.arguments.waitForMappingClose) {
+                this.logger.fine("But there was already data, so let's map them now");
+                this.arguments.waitForMappingClose = false;
+                return this.executeOnce();
+            } else {
+                return CompletableFuture.completedFuture(null);
+            }
+        }).thenAccept(_void -> {
+            this.logger.fine("Closing rml stream!");
+            this.close(this.arguments.mappings.id());
+        });
     }
 
     @Override
-    public void produce(Consumer<Void> callback) {
-        this.closeCb = callback;
+    public CompletableFuture<?> produce() {
+        this.closeFut = new CompletableFuture<>();
+        return this.closeFut;
     }
 }
