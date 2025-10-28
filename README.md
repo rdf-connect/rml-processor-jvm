@@ -116,6 +116,25 @@ Each target must provide:
 | `rdfc:target`              | `Target`       | Output targets (multiple allowed)                        | ⚪       |
 
 
+### RML Mapping File
+
+The mapping file should include RDF-Connect specific configuration for both the logical source and the logical target.
+
+
+#### Logical Source
+
+A logical source MUST define the following three parameters:
+
+* Type — The type MUST be `rdfc:Source`.
+* Reader — The property `rdfc:reader` MUST map either to the channel identifier or to the value of the `rdfc:mappingId` property.
+* Mime Type — The property `rdfc:mimeType` MUST specify the MIME type of the incoming data.
+
+
+#### Logical Target
+
+A logical target MUST be defined as either the identifier of the channel, or the value of the `rdfc:mappingId` property.
+
+
 ## Compact Example
 
 Example RML Mapper processor definition.
@@ -160,7 +179,8 @@ Example RML mapping file definition.
       a rdfc:Source;
       # get input from rdfc:source1
       # which is mapped with rdfc:mappingId to <data> in the pipeline
-      rdfc:reader rdfc:source1; 
+      rdfc:reader rdfc:source1;
+      rdfc:format "application/json"; 
     ];
     rml:referenceFormulation ql:JSONPath;
     rml:iterator "$.students[*]";

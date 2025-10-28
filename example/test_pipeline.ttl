@@ -4,9 +4,12 @@
 @prefix rdfc: <https://w3id.org/rdf-connect#>.
 @prefix owl: <http://www.w3.org/2002/07/owl#>.
 
-<> owl:imports <https://javadoc.jitpack.io/com/github/rdf-connect/jvm-runner/runner/master-SNAPSHOT/runner-master-SNAPSHOT-index.jar>.
-<> owl:imports <./build/plugins/rml-processor-jvm-master-SNAPSHOT-all.jar>.
+<> owl:imports <./build/plugins/runner-master-SNAPSHOT-index.jar>.
+<> owl:imports <../build/libs/rml-processor-0.0.1-all.jar>.
+# 
 <> owl:imports <./node_modules/@rdfc/file-utils-processors-ts/processors.ttl>.
+
+<> owl:imports <./node_modules/@rdfc/log-processor-ts/processor.ttl>.
 <> owl:imports <./node_modules/@rdfc/js-runner/index.ttl>.
 #
 <> a rdfc:Pipeline;
@@ -15,9 +18,14 @@
     rdfc:processor <mapper>;
   ], [
     rdfc:instantiates rdfc:NodeRunner;
-    rdfc:processor <mappingReader>, <dataReader>, <logger>;
+    rdfc:processor <mappingReader>,
+      <dataReader>,
+      <defaultLogger>,
+      <targetLogger>;
   ].
 
+<foobarRunner> a rdfc:Runner.
+<foobar> a rdfc:Runner.
 <mappingData> a rdfc:Reader, rdfc:Writer.
 <mappingReader> a rdfc:GlobRead;
   rdfc:glob <./mapping.ttl>;
@@ -39,7 +47,7 @@
     rdfc:mappingId rdfc:source1;
   ];
   rdfc:target [
-    rdfc:writer <default>;
+    rdfc:writer <target1>;
     rdfc:format "trig";
     rdfc:mappingId rdfc:target1;
   ];
@@ -48,22 +56,13 @@
     rdfc:format "trig";
   ].
 
-<logger> a <Log>;
-  rdfc:input <default>.
+<targetLogger> a rdfc:LogProcessorJs;
+  rdfc:reader <target1>;
+  rdfc:level "info";
+  rdfc:label "target".
 
-<Log> a owl:Class, rdfs:Class;
-  rdfc:jsImplementationOf rdfc:Processor;
-  rdfs:label "Log Things";
-  rdfs:comment "Logs things";
-  rdfc:file <./logger.js>;
-  rdfc:class "Logger";
-  rdfs:entrypoint <./>.
-
-[ ] a sh:NodeShape;
-  sh:targetClass <Log>;
-  sh:property [
-    sh:name "streams";
-    sh:path rdfc:input;
-    sh:class rdfc:Reader;
-  ].
+<defaultLogger> a rdfc:LogProcessorJs;
+  rdfc:reader <default>;
+  rdfc:level "info";
+  rdfc:label "default".
 

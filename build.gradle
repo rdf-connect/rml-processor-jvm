@@ -16,7 +16,7 @@ version = "0.0.1"
 dependencies {
     implementation 'com.google.protobuf:protobuf-java:4.28.2'
 	implementation 'com.github.rmlio:rmlmapper-java:master-SNAPSHOT'
-	implementation 'com.github.rdf-connect.jvm-runner:types:master-SNAPSHOT'
+	implementation 'com.github.rdf-connect.jvm-runner:types:80285f5'
 
     implementation 'org.apache.jena:jena-core:5.0.0'
     implementation "org.apache.jena:jena-arq:5.0.0"
