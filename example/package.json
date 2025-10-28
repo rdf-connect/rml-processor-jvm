@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@rdfc/file-utils-processors-ts": "^0.7.0-alpha.1",
+    "@rdfc/file-utils-processors-ts": "^1.0.1",
     "@rdfc/js-runner": "^3.0.1",
     "@rdfc/orchestrator-js": "^2.0.0"
   },
