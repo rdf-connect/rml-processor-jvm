@@ -77,7 +77,7 @@ public class App extends Processor<App.Args> {
      *       backpressure.
      */
     private CompletableFuture<Void> executeOnce() {
-        System.out.println("Execute Once");
+        this.logger.fine("Execute Once");
 
         if (this.arguments.waitForMappingClose) {
             // Still waiting for mapping close
@@ -98,7 +98,6 @@ public class App extends Processor<App.Args> {
         this.logger.fine("starting to execute on " + this.rmlStores.size() + " stores");
 
         ArrayList<CompletableFuture<Void>> futures = new ArrayList<>();
-        System.out.println("Awaiting " + this.arguments.targets.size() + " writes");
 
         for (QuadStore rmlStore : this.rmlStores) {
             try {
@@ -121,7 +120,7 @@ public class App extends Processor<App.Args> {
         }
 
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(_void -> {
-            System.out.println("All settled!");
+            this.logger.fine("All settled!");
         });
     }
 

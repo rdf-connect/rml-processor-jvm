@@ -9,6 +9,7 @@
   "dependencies": {
     "@rdfc/file-utils-processors-ts": "^1.0.1",
     "@rdfc/js-runner": "^3.0.1",
+    "@rdfc/log-processor-ts": "^2.0.1",
     "@rdfc/orchestrator-js": "^2.0.0"
   },
   "keywords": [],
