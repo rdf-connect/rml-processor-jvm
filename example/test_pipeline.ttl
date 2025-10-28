@@ -1,10 +1,33 @@
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
 @prefix sosa: <http://www.w3.org/ns/sosa/>.
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix sh: <http://www.w3.org/ns/shacl#>.
 @prefix rdfc: <https://w3id.org/rdf-connect#>.
 @prefix owl: <http://www.w3.org/2002/07/owl#>.
 
-<> owl:imports <./runner-master-SNAPSHOT-index.jar>.
+rdfc:javaImplementationOf rdfs:subPropertyOf rdfs:subClassOf.
+#
+rdfc:JvmRunner a rdfc:Runner;
+  rdfc:handlesSubjectsOf rdfc:javaImplementationOf;
+  rdfc:command "[ -f jvm-runner.jar ] || curl -L -o jvm-runner.jar https://javadoc.jitpack.io/com/github/rdf-connect/jvm-runner/runner/master-SNAPSHOT/runner-master-SNAPSHOT-all.jar; java -jar jvm-runner.jar";
+  rdfc:processor_definition <JavaProcessorShape>.
+
+[ ] a sh:NodeShape;
+  sh:targetSubjectsOf rdfc:javaImplementationOf;
+  sh:property [
+    sh:path rdfc:jar;
+    sh:name "jar";
+    sh:minCount 1;
+    sh:maxCount 1;
+    sh:datatype xsd:string;
+  ], [
+    sh:path rdfc:class;
+    sh:name "clazz";
+    sh:minCount 1;
+    sh:maxCount 1;
+    sh:datatype xsd:string;
+  ].
+
 <> owl:imports <../build/libs/rml-processor-0.0.1-all.jar>.
 # 
 <> owl:imports <./node_modules/@rdfc/file-utils-processors-ts/processors.ttl>.
@@ -43,17 +66,17 @@
     rdfc:mappingId rdfc:source1;
   ];
   rdfc:target [
-    rdfc:writer <default>;
+    rdfc:writer <target1>;
     rdfc:format "trig";
     rdfc:mappingId rdfc:target1;
+  ];
+  rdfc:defaultTarget [
+    rdfc:writer <default>;
+    rdfc:format "trig";
   ].
 
-# rdfc:defaultTarget [
-#   rdfc:writer <default>;
-#   rdfc:format "trig";
-# ].
 <logger> a <Log>;
-  rdfc:input <default>.
+  rdfc:input <default>, <target1>.
 
 <Log> a owl:Class, rdfs:Class;
   rdfc:jsImplementationOf rdfc:Processor;

@@ -8,8 +8,8 @@
   },
   "dependencies": {
     "@rdfc/file-utils-processors-ts": "^0.7.0-alpha.1",
-    "@rdfc/js-runner": "^2.0.0-alpha.8",
-    "@rdfc/orchestrator-js": "^1.0.6"
+    "@rdfc/js-runner": "^3.0.1",
+    "@rdfc/orchestrator-js": "^2.0.0"
   },
   "keywords": [],
   "author": "",

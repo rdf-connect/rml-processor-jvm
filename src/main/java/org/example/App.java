@@ -136,21 +136,7 @@ public class App extends Processor<App.Args> {
             store.write(out, target.format);
             String trig = out.toString(StandardCharsets.UTF_8);
 
-            this.logger.fine("writing " + trig);
-
-            CompletableFuture<Void> stream = target.writer.stream().thenCompose(st -> {
-                System.out.println("Sending first part");
-                return st.chunk(ByteString.copyFromUtf8(trig.substring(0, 2))).thenApply(_void -> st);
-            }).thenCompose(st -> {
-                System.out.println("Sending second part");
-                return st.chunk(ByteString.copyFromUtf8(trig.substring(2))).thenApply(_o -> st);
-            }).thenCompose(st -> {
-                System.out.println("Closing streaming msg");
-                return st.close();
-            });
-
-            futures.add(stream);
-            // futures.add(target.writer.chunk(ByteString.copyFromUtf8(trig)));
+            futures.add(target.writer.chunk(ByteString.copyFromUtf8(trig)));
         }
     }
 
@@ -163,9 +149,8 @@ public class App extends Processor<App.Args> {
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             store.write(out, this.arguments.defaultTarget.format);
-            String trig = out.toString(StandardCharsets.UTF_8);
 
-            this.logger.fine("writing " + trig);
+            String trig = out.toString(StandardCharsets.UTF_8);
             futures.add(
                     this.arguments.defaultTarget.writer.chunk(ByteString.copyFromUtf8(trig)));
         }
@@ -270,6 +255,7 @@ public class App extends Processor<App.Args> {
 
     @Override
     public CompletableFuture<?> transform() {
+        this.logger.info("Transforming!");
         return this.arguments.mappings.buffers().on(buffer -> {
             this.logger.fine("Got RML mapping!");
             InputStream inputStream = new ByteArrayInputStream(buffer.toByteArray());

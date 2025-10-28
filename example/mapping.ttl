@@ -22,5 +22,8 @@
       rml:reference "Name";
       rml:logicalTarget rdfc:target1;
     ];
+  ], [
+    rr:predicate foaf:otherName;
+    rr:objectMap [ rml:reference "Name" ];
   ].
 
