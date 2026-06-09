@@ -37,7 +37,7 @@ public class MyAccessFactory extends AccessFactory {
                 List<Term> sourceType = Utils
                         .getObjectsFromQuads(rmlStore.getQuads(source, new NamedNode(NAMESPACES.RDF + "type"), null));
 
-                sourceType.remove(new NamedNode(NAMESPACES.RML2 + "LogicalSource"));
+                sourceType.remove(new NamedNode(NAMESPACES.RML2 + "Source"));
 
                 switch (sourceType.get(0).getValue()) {
                     case Ns.RDFC + "Source":
