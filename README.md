@@ -1,5 +1,7 @@
 # RmlMapper Processor for RDF Connect
 
+[![Unit Tests](https://github.com/rdf-connect/rml-processor-jvm/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/rdf-connect/rml-processor-jvm/actions/workflows/unit-tests.yml)
+
 `RmlMapper` is a processor for the RDF-Connect streaming pipeline framework.  
 It allows you to map data from sources to targets using RML mappings, supporting multiple sources and targets as well as a default target.
 
