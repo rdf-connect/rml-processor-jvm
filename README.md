@@ -74,7 +74,7 @@ gradle copyPlugins
 
 ## Configuration
 
-### `Source`
+### `Source` (if any)
 
 Each source must provide:
 
