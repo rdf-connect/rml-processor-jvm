@@ -4,7 +4,6 @@
 package org.example;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -33,6 +32,8 @@ import io.github.rdfc.Processor;
 
 public class App extends Processor<App.Args> {
     final static String DEFAULT_BASE_IRI = "http://example.com/base/";
+    final static int DEFAULT_TARGET_STREAM_THRESHOLD_BYTES = 5 * 1024 * 1024;
+    final static int DEFAULT_TARGET_CHUNK_SIZE_BYTES = 1024 * 1024;
 
     private List<QuadStore> rmlStores = new ArrayList<>();
     private RecordsFactory recordsFactory;
@@ -134,9 +135,13 @@ public class App extends Processor<App.Args> {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
 
             store.write(out, target.format);
-            String trig = out.toString(StandardCharsets.UTF_8);
+            byte[] payload = out.toByteArray();
 
-            futures.add(target.writer.chunk(ByteString.copyFromUtf8(trig)));
+            if (payload.length > DEFAULT_TARGET_STREAM_THRESHOLD_BYTES) {
+                futures.add(sendPayloadAsSingleStream(target.writer, payload));
+            } else {
+                futures.add(target.writer.chunk(ByteString.copyFrom(payload)));
+            }
         }
     }
 
@@ -146,19 +151,45 @@ public class App extends Processor<App.Args> {
             this.logger.fine("default target is present");
 
             var store = maps.get(new NamedNode("rmlmapper://default.store"));
+            if (store == null) {
+                return;
+            }
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             store.write(out, this.arguments.defaultTarget.format);
+            byte[] payload = out.toByteArray();
 
-            String trig = out.toString(StandardCharsets.UTF_8);
-            futures.add(
-                    this.arguments.defaultTarget.writer.chunk(ByteString.copyFromUtf8(trig)));
+            if (payload.length > DEFAULT_TARGET_STREAM_THRESHOLD_BYTES) {
+                futures.add(sendPayloadAsSingleStream(this.arguments.defaultTarget.writer, payload));
+            } else {
+                futures.add(this.arguments.defaultTarget.writer.chunk(ByteString.copyFrom(payload)));
+            }
         }
+    }
+
+    private CompletableFuture<Void> sendPayloadAsSingleStream(IWriter writer, byte[] payload) {
+        return writer.stream().thenCompose(stream -> {
+            CompletableFuture<Void> sendChain = CompletableFuture.completedFuture(null);
+
+            if (payload.length == 0) {
+                sendChain = sendChain.thenCompose(_void -> stream.chunk(ByteString.EMPTY));
+            } else {
+                for (int offset = 0; offset < payload.length; offset += DEFAULT_TARGET_CHUNK_SIZE_BYTES) {
+                    final int chunkOffset = offset;
+                    final int chunkLength = Math.min(DEFAULT_TARGET_CHUNK_SIZE_BYTES, payload.length - chunkOffset);
+                    sendChain = sendChain
+                            .thenCompose(_void -> stream.chunk(ByteString.copyFrom(payload, chunkOffset, chunkLength)));
+                }
+            }
+
+            return sendChain.thenCompose(_void -> stream.close());
+        });
     }
 
     private boolean rmlStoresHaveLogicalSource() {
         for (QuadStore store : this.rmlStores) {
-            if (!store.getQuads(null, new NamedNode(NAMESPACES.RDF + "type"), new NamedNode(NAMESPACES.RML2 + "LogicalSource")).isEmpty()) {
+            if (!store.getQuads(null, new NamedNode(NAMESPACES.RDF + "type"),
+                    new NamedNode(NAMESPACES.RML2 + "LogicalSource")).isEmpty()) {
                 return true;
             }
         }
@@ -289,7 +320,8 @@ public class App extends Processor<App.Args> {
                 this.arguments.waitForMappingClose = false;
                 return this.executeOnce();
             } else if (this.arguments.sources.isEmpty() && this.rmlStoresHaveLogicalSource()) {
-                this.logger.fine("No channel sources defined but mapping contains rml:LogicalSource instances, executing now");
+                this.logger.fine(
+                        "No channel sources defined but mapping contains rml:LogicalSource instances, executing now");
                 return this.executeOnce();
             } else {
                 return CompletableFuture.completedFuture(null);
