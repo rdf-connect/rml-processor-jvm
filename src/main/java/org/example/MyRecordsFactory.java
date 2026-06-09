@@ -6,7 +6,6 @@ import java.lang.reflect.Field;
 import java.util.Map;
 
 import be.ugent.rml.records.RecordsFactory;
-import io.github.rdfc.IReader;
 
 public class MyRecordsFactory extends RecordsFactory {
 

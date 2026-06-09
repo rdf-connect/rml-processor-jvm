@@ -19,6 +19,7 @@ import com.google.protobuf.ByteString;
 import be.ugent.idlab.knows.functions.agent.Agent;
 import be.ugent.idlab.knows.functions.agent.AgentFactory;
 import be.ugent.rml.Executor;
+import be.ugent.rml.NAMESPACES;
 import be.ugent.rml.StrictMode;
 import be.ugent.rml.conformer.MappingConformer;
 import be.ugent.rml.records.RecordsFactory;
@@ -155,6 +156,15 @@ public class App extends Processor<App.Args> {
         }
     }
 
+    private boolean rmlStoresHaveLogicalSource() {
+        for (QuadStore store : this.rmlStores) {
+            if (!store.getQuads(null, new NamedNode(NAMESPACES.RDF + "type"), new NamedNode(NAMESPACES.RML2 + "LogicalSource")).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void convertToRml(QuadStore store) throws Exception {
         MappingConformer conformer = new MappingConformer(store, new HashMap<>());
         try {
@@ -277,6 +287,9 @@ public class App extends Processor<App.Args> {
             if (this.arguments.waitForMappingClose) {
                 this.logger.fine("But there was already data, so let's map them now");
                 this.arguments.waitForMappingClose = false;
+                return this.executeOnce();
+            } else if (this.arguments.sources.isEmpty() && this.rmlStoresHaveLogicalSource()) {
+                this.logger.fine("No channel sources defined but mapping contains rml:LogicalSource instances, executing now");
                 return this.executeOnce();
             } else {
                 return CompletableFuture.completedFuture(null);
