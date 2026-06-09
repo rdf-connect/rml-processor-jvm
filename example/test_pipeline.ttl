@@ -11,7 +11,7 @@
 
 <> owl:imports <./node_modules/@rdfc/log-processor-ts/processor.ttl>.
 <> owl:imports <./node_modules/@rdfc/js-runner/index.ttl>.
-#
+
 <> a rdfc:Pipeline;
   rdfc:consistsOf [
     rdfc:instantiates rdfc:JvmRunner;

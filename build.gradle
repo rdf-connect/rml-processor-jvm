@@ -20,6 +20,10 @@ dependencies {
 
     implementation 'org.apache.jena:jena-core:5.0.0'
     implementation "org.apache.jena:jena-arq:5.0.0"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.mockito:mockito-core:5.12.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
 }
 
 shadowJar {
@@ -61,5 +65,9 @@ configurations.all {
 
 build {
     dependsOn shadowJar
+}
+
+test {
+    useJUnitPlatform()
 }
 
