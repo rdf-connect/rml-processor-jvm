@@ -114,7 +114,7 @@ public class App extends Processor<App.Args> {
                     outputToTarget(maps, target, futures);
                 }
 
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 System.out.println("error happened during mapping");
                 this.logger.severe("error happened during mapping: " + e.getMessage());
                 e.printStackTrace();
@@ -203,6 +203,7 @@ public class App extends Processor<App.Args> {
             if (conversionNeeded) {
                 this.logger.fine("Conversion to RML was needed.");
             }
+
         } catch (Exception e) {
             this.logger.severe("Failed to make mapping file conformant to RML spec.");
             throw e; // rethrow the exception to be caught by the test
