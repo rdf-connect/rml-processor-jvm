@@ -30,7 +30,9 @@ public class MyAccessFactory extends AccessFactory {
             if (source instanceof Literal) {
                 var reader = this.readers.get(source.getValue());
                 if (reader != null) {
-                    return new ReaderAccess(source.getValue(), "application/json", reader);
+                    // A bare literal source carries no mime type, so we cannot derive one.
+                    // Leave it empty, like the rdfc:Source branch does when rdfc:mimeType is absent.
+                    return new ReaderAccess(source.getValue(), "", reader);
                 }
             } else {
                 List<Term> sourceType = Utils
@@ -46,28 +48,20 @@ public class MyAccessFactory extends AccessFactory {
                                 .getObjectsFromQuads(rmlStore.getQuads(source, new NamedNode(Ns.RDFC + "reader"), null))
                                 .get(0).getValue();
 
-                        String type = "";
-                        try {
-                            type = Utils
-                                    .getObjectsFromQuads(
-                                            rmlStore.getQuads(source, new NamedNode(Ns.RDFC + "mimeType"), null))
-                                    .get(0).getValue();
-                        } catch (Exception e) {
-                        }
+                        String type = firstValue(rmlStore, source, Ns.RDFC + "mimeType", "");
 
                         var reader = this.readers.get(readerId);
                         return new ReaderAccess(source.getValue(), type, reader);
                     }
-                    case "http://www.w3.org/ns/dcat#Distribution": {
+                    case Ns.DCAT + "Distribution": {
                         // MappingConformer converts rml:source "id" into a dcat:Distribution
                         // with dcat:downloadURL "id". Look up the URL in our readers map.
-                        List<Term> urls = Utils.getObjectsFromQuads(
-                                rmlStore.getQuads(source, new NamedNode("http://www.w3.org/ns/dcat#downloadURL"), null));
-                        if (!urls.isEmpty()) {
-                            String readerId = urls.get(0).getValue();
+                        String readerId = firstValue(rmlStore, source, Ns.DCAT + "downloadURL", null);
+                        if (readerId != null) {
                             var reader = this.readers.get(readerId);
                             if (reader != null) {
-                                return new ReaderAccess(readerId, "application/json", reader);
+                                String type = firstValue(rmlStore, source, Ns.DCAT + "mediaType", "");
+                                return new ReaderAccess(readerId, type, reader);
                             }
                         }
                         break;
@@ -77,5 +71,11 @@ public class MyAccessFactory extends AccessFactory {
         }
 
         return super.getAccess(logicalSource, rmlStore);
+    }
+
+    /** Value of the first {@code predicate} object on {@code subject}, or {@code fallback} if there is none. */
+    private static String firstValue(QuadStore rmlStore, Term subject, String predicate, String fallback) {
+        List<Term> values = Utils.getObjectsFromQuads(rmlStore.getQuads(subject, new NamedNode(predicate), null));
+        return values.isEmpty() ? fallback : values.get(0).getValue();
     }
 }
