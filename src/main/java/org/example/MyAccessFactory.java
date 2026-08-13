@@ -51,6 +51,14 @@ public class MyAccessFactory extends AccessFactory {
                         String type = firstValue(rmlStore, source, Ns.RDFC + "mimeType", "");
 
                         var reader = this.readers.get(readerId);
+                        if (reader == null) {
+                            // Unlike a literal or a downloadURL, rdfc:reader can only ever mean an
+                            // RDF-Connect channel, so there is nothing for super.getAccess() to fall
+                            // back to. Fail here with the registered keys instead of NPE'ing later.
+                            throw new IllegalArgumentException(
+                                    "No source registered for rdfc:reader <" + readerId + ">, known sources are "
+                                            + this.readers.keySet());
+                        }
                         return new ReaderAccess(source.getValue(), type, reader);
                     }
                     case Ns.DCAT + "Distribution": {
