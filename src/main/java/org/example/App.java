@@ -114,7 +114,13 @@ public class App extends Processor<App.Args> {
                     outputToTarget(maps, target, futures);
                 }
 
-            } catch (Exception e) {
+            } catch (Throwable e) {
+                // The rmlmapper access layer signals recoverable problems (e.g. "Cannot find <id>")
+                // by throwing a bare java.lang.Error, so we cannot simply catch Exception here.
+                // Anything genuinely fatal for the VM must still propagate.
+                if (e instanceof VirtualMachineError || e instanceof LinkageError) {
+                    throw (Error) e;
+                }
                 System.out.println("error happened during mapping");
                 this.logger.severe("error happened during mapping: " + e.getMessage());
                 e.printStackTrace();
@@ -203,6 +209,7 @@ public class App extends Processor<App.Args> {
             if (conversionNeeded) {
                 this.logger.fine("Conversion to RML was needed.");
             }
+
         } catch (Exception e) {
             this.logger.severe("Failed to make mapping file conformant to RML spec.");
             throw e; // rethrow the exception to be caught by the test

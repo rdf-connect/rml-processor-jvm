@@ -26,42 +26,64 @@ public class MyAccessFactory extends AccessFactory {
         List<Term> sources = Utils
                 .getObjectsFromQuads(rmlStore.getQuads(logicalSource, new NamedNode(NAMESPACES.RML2 + "source"), null));
 
-        // check if at least one source is available.
-        if (!sources.isEmpty()) {
-            Term source = sources.get(0);
-
-            // if we are dealing with a literal,
-            // then it's either a local or remote file.
-            if (!(sources.get(0) instanceof Literal)) {
-                // if not a literal, then we are dealing with a more complex description.
+        for (Term source : sources) {
+            if (source instanceof Literal) {
+                var reader = this.readers.get(source.getValue());
+                if (reader != null) {
+                    // A bare literal source carries no mime type, so we cannot derive one.
+                    // Leave it empty, like the rdfc:Source branch does when rdfc:mimeType is absent.
+                    return new ReaderAccess(source.getValue(), "", reader);
+                }
+            } else {
                 List<Term> sourceType = Utils
                         .getObjectsFromQuads(rmlStore.getQuads(source, new NamedNode(NAMESPACES.RDF + "type"), null));
 
                 sourceType.remove(new NamedNode(NAMESPACES.RML2 + "Source"));
 
+                if (sourceType.isEmpty()) continue;
+
                 switch (sourceType.get(0).getValue()) {
-                    case Ns.RDFC + "Source":
+                    case Ns.RDFC + "Source": {
                         String readerId = Utils
                                 .getObjectsFromQuads(rmlStore.getQuads(source, new NamedNode(Ns.RDFC + "reader"), null))
                                 .get(0).getValue();
 
-                        String type = "";
-                        try {
-
-                            type = Utils
-                                    .getObjectsFromQuads(
-                                            rmlStore.getQuads(source, new NamedNode(Ns.RDFC + "mimeType"), null))
-                                    .get(0).getValue();
-                        } catch (Exception e) {
-
-                        }
+                        String type = firstValue(rmlStore, source, Ns.RDFC + "mimeType", "");
 
                         var reader = this.readers.get(readerId);
+                        if (reader == null) {
+                            // Unlike a literal or a downloadURL, rdfc:reader can only ever mean an
+                            // RDF-Connect channel, so there is nothing for super.getAccess() to fall
+                            // back to. Fail here with the registered keys instead of NPE'ing later.
+                            throw new IllegalArgumentException(
+                                    "No source registered for rdfc:reader <" + readerId + ">, known sources are "
+                                            + this.readers.keySet());
+                        }
                         return new ReaderAccess(source.getValue(), type, reader);
+                    }
+                    case Ns.DCAT + "Distribution": {
+                        // MappingConformer converts rml:source "id" into a dcat:Distribution
+                        // with dcat:downloadURL "id". Look up the URL in our readers map.
+                        String readerId = firstValue(rmlStore, source, Ns.DCAT + "downloadURL", null);
+                        if (readerId != null) {
+                            var reader = this.readers.get(readerId);
+                            if (reader != null) {
+                                String type = firstValue(rmlStore, source, Ns.DCAT + "mediaType", "");
+                                return new ReaderAccess(readerId, type, reader);
+                            }
+                        }
+                        break;
+                    }
                 }
             }
         }
 
         return super.getAccess(logicalSource, rmlStore);
+    }
+
+    /** Value of the first {@code predicate} object on {@code subject}, or {@code fallback} if there is none. */
+    private static String firstValue(QuadStore rmlStore, Term subject, String predicate, String fallback) {
+        List<Term> values = Utils.getObjectsFromQuads(rmlStore.getQuads(subject, new NamedNode(predicate), null));
+        return values.isEmpty() ? fallback : values.get(0).getValue();
     }
 }

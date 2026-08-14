@@ -127,11 +127,45 @@ The mapping file should include RDF-Connect specific configuration for both the 
 
 #### Logical Source
 
-A logical source MUST define the following three parameters:
+The processor has to decide, for every logical source in the mapping, *which* incoming
+channel it should read. Both sides agree on a single **string key**:
 
-* Type — The type MUST be `rdfc:Source`.
-* Reader — The property `rdfc:reader` MUST map either to the channel identifier or to the value of the `rdfc:mappingId` property.
-* Mime Type — The property `rdfc:mimeType` MUST specify the MIME type of the incoming data.
+* **Registration.** Every `rdfc:source` in the pipeline is registered under its
+  `rdfc:mappingId` if it has one, and under the reader channel's own IRI if it does not.
+* **Lookup.** The processor collects every `rml:source` on the logical source and walks
+  them in order, returning the first one that resolves to a registered key.
+
+Three shapes are recognised:
+
+| `rml:source` shape          | key that is looked up      | mime type                       |
+|-----------------------------|----------------------------|---------------------------------|
+| node typed `rdfc:Source`    | value of `rdfc:reader`     | `rdfc:mimeType`, else `""`      |
+| plain literal               | the literal's string value | `""` (nothing to derive it from)|
+| node typed `dcat:Distribution` | value of `dcat:downloadURL` | `dcat:mediaType`, else `""`  |
+
+The `rdfc:Source` form is the explicit one and the one to prefer when you write mappings
+by hand. The other two exist so that generated mappings — see [Using YARRRML](#using-yarrrml)
+below — work without post-processing.
+
+If none of the sources resolves to a registered key, the mapping falls through to the
+stock RML resolution: local files, remote URLs, databases, SPARQL endpoints. That is what
+makes `rml:source "data.json"` keep working as an ordinary file read. The one exception is
+`rdfc:Source`, which can only ever mean an RDF-Connect channel: an `rdfc:reader` that
+matches nothing raises an error listing the keys that *are* registered.
+
+```turtle
+# explicit: read from the source registered as rdfc:source1
+rml:source [
+  a rdfc:Source;
+  rdfc:reader rdfc:source1;
+  rdfc:mimeType "application/json";
+]
+```
+
+Note that `rdfc:mappingId rdfc:source1` registers the *expanded* IRI
+`https://w3id.org/rdf-connect#source1`, so the mapping file has to expand its prefix the
+same way. Using a plain string id on both sides (`rdfc:mappingId "students"` and
+`rml:source "students"`) sidesteps that entirely.
 
 
 #### Logical Target
@@ -184,7 +218,7 @@ Example RML mapping file definition.
       # get input from rdfc:source1
       # which is mapped with rdfc:mappingId to <data> in the pipeline
       rdfc:reader rdfc:source1;
-      rdfc:format "application/json"; 
+      rdfc:mimeType "application/json";
     ];
     rml:referenceFormulation ql:JSONPath;
     rml:iterator "$.students[*]";
@@ -200,6 +234,92 @@ Example RML mapping file definition.
     ];
   ].
 ```
+
+## Using YARRRML
+
+YARRRML mappings work without any post-processing: name the source in YARRRML whatever you
+registered it as in the pipeline. Here is the full path a source name travels.
+
+**1. What you write** — `mapping.yml`. The part before `~` is the source name; give it the
+same value you use as `rdfc:mappingId`.
+
+```yaml
+prefixes:
+  foaf: http://xmlns.com/foaf/0.1/
+
+mappings:
+  student:
+    sources:
+      - ['students~jsonpath', '$.students[*]']
+    s: http://example.com/$(Name)
+    po:
+      - [foaf:name, $(Name)]
+```
+
+**2. What `yarrrml-parser -i mapping.yml -o mapping.ttl` emits.** It writes legacy RML
+(`http://semweb.mmlab.be/ns/rml#`) and the source name lands as a plain literal:
+
+```turtle
+@prefix rr:   <http://www.w3.org/ns/r2rml#>.
+@prefix rml:  <http://semweb.mmlab.be/ns/rml#>.
+@prefix ql:   <http://semweb.mmlab.be/ns/ql#>.
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+
+<#student_0> a rr:TriplesMap;
+  rml:logicalSource [ a rml:LogicalSource;
+    rml:source "students";                     # <- just a literal
+    rml:iterator "$.students[*]";
+    rml:referenceFormulation ql:JSONPath;
+  ];
+  rr:subjectMap [ rr:template "http://example.com/{Name}" ];
+  rr:predicateObjectMap [
+    rr:predicateMap [ rr:constant foaf:name ];
+    rr:objectMap [ rml:reference "Name" ];
+  ].
+```
+
+**3. What the processor sees.** Before mapping, the processor runs the rmlmapper's
+`MappingConformer` over every mapping to bring legacy RML up to RML 2. That step rewrites a
+*literal* `rml:source` into a `dcat:Distribution` blank node — this is not something you
+wrote, and it is why the second and third rows of the table above exist:
+
+```turtle
+@prefix rml:  <http://w3id.org/rml/>.
+@prefix dcat: <http://www.w3.org/ns/dcat#>.
+
+<#student_0> rml:logicalSource [ a rml:LogicalSource;
+    rml:source [ a dcat:Distribution, rml:Source;
+      dcat:downloadURL "students";             # <- your source name, moved here
+    ];
+    rml:iterator "$.students[*]";
+    rml:referenceFormulation rml:JSONPath;
+  ];
+  ...
+```
+
+The processor reads `dcat:downloadURL`, finds `students` among the registered sources, and
+streams the channel into the mapping. Had you written the mapping directly in RML 2, the
+conformer would have left `rml:source "students"` alone as a literal and the literal row of
+the table would apply instead — either way the same name resolves.
+
+**4. The pipeline side** — register the channel under that name:
+
+```turtle
+<data> a rdfc:Reader, rdfc:Writer.
+<mapper> a rdfc:RmlMapper;
+  rdfc:mappings <mappingData>;
+  rdfc:source [
+    rdfc:reader <data>;
+    rdfc:mappingId "students";                 # <- matches the YARRRML source name
+    rdfc:triggers true;
+  ];
+  rdfc:defaultTarget [ rdfc:writer <out>; rdfc:format "trig" ].
+```
+
+If the name does not match anything registered, the mapping falls through to plain RML
+resolution and the rmlmapper looks for a *file* called `students`, failing with
+`Cannot find students`. That error almost always means the YARRRML source name and the
+`rdfc:mappingId` have drifted apart.
 
 ## Development
 
