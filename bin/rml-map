@@ -1,0 +1,4 @@
+#!/bin/sh
+# Launcher for the rml-map CLI; build the jar first with `gradle cliJar`.
+# Extra JVM flags go in $JAVA_OPTS. Works through symlinks (cwl/bin).
+exec java $JAVA_OPTS -jar "$(dirname "$(readlink -f "$0")")/../build/libs/rml-map.jar" "$@"

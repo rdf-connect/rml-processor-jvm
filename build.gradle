@@ -37,6 +37,21 @@ shadowJar {
         into("") // root of jar
     }
 }
+// Standalone `rml-map` CLI (org.example.RmlMap): a self-contained fat jar that,
+// unlike shadowJar, keeps the rdf-connect types and protobuf the runner would
+// otherwise provide. Run it through bin/rml-map.
+tasks.register('cliJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    archiveFileName = 'rml-map.jar'
+    from sourceSets.main.output
+    configurations = [project.configurations.runtimeClasspath]
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/INDEX.LIST'
+    mergeServiceFiles()
+    zip64 = true
+    manifest {
+        attributes 'Main-Class': 'org.example.RmlMap'
+    }
+}
+
 configurations.all {
     resolutionStrategy {
         force "org.ow2.asm:asm:9.6"

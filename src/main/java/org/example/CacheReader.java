@@ -16,6 +16,15 @@ public class CacheReader {
         });
     }
 
+    /** A reader that is fed by hand through {@link #set}, as the {@link RmlMap} CLI does from stdin. */
+    CacheReader() {
+        this.isDone = CompletableFuture.completedFuture(null);
+    }
+
+    void set(byte[] last) {
+        this._last = last;
+    }
+
     byte[] last() {
         return this._last;
     }

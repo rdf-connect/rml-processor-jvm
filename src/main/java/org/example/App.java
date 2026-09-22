@@ -55,13 +55,18 @@ public class App extends Processor<App.Args> {
     public App(App.Args args, Logger logger) throws Exception {
         super(args, logger);
 
-        this.functionAgent = AgentFactory.createFromFnO(
+        this.functionAgent = createFunctionAgent();
+
+        this.recordsFactory = new MyRecordsFactory(readers);
+    }
+
+    /** The FnO function agent, shared by the processor and the {@link RmlMap} CLI. */
+    static Agent createFunctionAgent() throws Exception {
+        return AgentFactory.createFromFnO(
                 "fno/functions_idlab.ttl", "fno/functions_idlab_classes_java_mapping.ttl",
                 "fno_idlab_old/functions_idlab.ttl", "fno_idlab_old/functions_idlab_classes_java_mapping.ttl",
                 "functions_grel.ttl",
                 "grel_java_mapping.ttl");
-
-        this.recordsFactory = new MyRecordsFactory(readers);
     }
 
     Executor engine(QuadStore rmlStore) throws Exception {
