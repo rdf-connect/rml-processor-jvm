@@ -6,7 +6,7 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#>.
 
 <> owl:imports <./build/plugins/runner-master-SNAPSHOT-index.jar>.
-<> owl:imports <../build/libs/rml-processor-0.0.1-all.jar>.
+<> owl:imports <../build/libs/rml-processor-jvm-0.0.2-all.jar>.
 # 
 <> owl:imports <./node_modules/@rdfc/file-utils-processors-ts/processors.ttl>.
 
