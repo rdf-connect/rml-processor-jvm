@@ -33,6 +33,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:codeIdentifier "triggers";
     sh:name "Triggers";
     sh:description "Whether new data on this source triggers another execution of the mappings; default is false.";
+    sh:defaultValue false;
     sh:maxCount 1;
     sh:datatype xsd:boolean;
   ].
@@ -59,6 +60,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:codeIdentifier "format";
     sh:name "Format";
     sh:description "Serialization of the output, such as turtle or trig; default is turtle.";
+    sh:defaultValue "turtle";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ].
@@ -78,6 +80,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:codeIdentifier "format";
     sh:name "Format";
     sh:description "Serialization of the output, such as turtle or trig; default is turtle.";
+    sh:defaultValue "turtle";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ].
@@ -97,6 +100,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:codeIdentifier "baseIRI";
     sh:name "Base IRI";
     sh:description "Base IRI against which relative IRIs in the mappings are resolved; default is http://example.com/base/.";
+    sh:defaultValue "http://example.com/base/";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ], [
@@ -104,6 +108,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:codeIdentifier "waitForMappingClose";
     sh:name "Wait for mapping close";
     sh:description "Whether to wait until the mapping channel is closed before executing the mappings; default is false.";
+    sh:defaultValue false;
     sh:maxCount 1;
     sh:datatype xsd:boolean;
   ], [
