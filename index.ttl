@@ -13,18 +13,21 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
   sh:targetClass <Source>;
   sh:property [
     sh:path rdfc:reader;
-    sh:name "reader";
+    sh:codeIdentifier "reader";
+    sh:name "Reader";
     sh:minCount 1;
     sh:maxCount 1;
     sh:class rdfc:Reader;
   ], [
     sh:path rdfc:mappingId;
-    sh:name "mappingId";
+    sh:codeIdentifier "mappingId";
+    sh:name "Mapping identifier";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ], [
     sh:path rdfc:triggers;
-    sh:name "triggers";
+    sh:codeIdentifier "triggers";
+    sh:name "Triggers";
     sh:maxCount 1;
     sh:datatype xsd:boolean;
   ].
@@ -33,18 +36,21 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
   sh:targetClass <Target>;
   sh:property [
     sh:path rdfc:writer;
-    sh:name "writer";
+    sh:codeIdentifier "writer";
+    sh:name "Writer";
     sh:minCount 1;
     sh:maxCount 1;
     sh:class rdfc:Writer;
   ], [
     sh:path rdfc:mappingId;
-    sh:name "mappingId";
+    sh:codeIdentifier "mappingId";
+    sh:name "Mapping identifier";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ], [
     sh:path rdfc:format;
-    sh:name "format";
+    sh:codeIdentifier "format";
+    sh:name "Format";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ].
@@ -53,13 +59,15 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
   sh:targetClass <DefaultTarget>;
   sh:property [
     sh:path rdfc:writer;
-    sh:name "writer";
+    sh:codeIdentifier "writer";
+    sh:name "Writer";
     sh:minCount 1;
     sh:maxCount 1;
     sh:class rdfc:Writer;
   ], [
     sh:path rdfc:format;
-    sh:name "format";
+    sh:codeIdentifier "format";
+    sh:name "Format";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ].
@@ -68,32 +76,38 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
   sh:targetClass rdfc:RmlMapper;
   sh:property [
     sh:path rdfc:mappings;
-    sh:name "mappings";
+    sh:codeIdentifier "mappings";
+    sh:name "Mappings";
     sh:minCount 1;
     sh:maxCount 1;
     sh:class rdfc:Reader;
   ], [
     sh:path rdfc:baseIRI;
-    sh:name "baseIRI";
+    sh:codeIdentifier "baseIRI";
+    sh:name "Base IRI";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ], [
     sh:path rdfc:waitForMappingClose;
-    sh:name "waitForMappingClose";
+    sh:codeIdentifier "waitForMappingClose";
+    sh:name "Wait for mapping close";
     sh:maxCount 1;
     sh:datatype xsd:boolean;
   ], [
     sh:path rdfc:defaultTarget;
-    sh:name "defaultTarget";
+    sh:codeIdentifier "defaultTarget";
+    sh:name "Default target";
     sh:maxCount 1;
     sh:class <DefaultTarget>;
   ], [
     sh:path rdfc:source;
-    sh:name "sources";
+    sh:codeIdentifier "sources";
+    sh:name "Sources";
     sh:class <Source>;
   ], [
     sh:path rdfc:target;
-    sh:name "targets";
+    sh:codeIdentifier "targets";
+    sh:name "Targets";
     sh:class <Target>;
   ].
 
