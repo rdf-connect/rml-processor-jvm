@@ -2,9 +2,10 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
 @prefix sh: <http://www.w3.org/ns/shacl#>.
 @prefix rdfc: <https://w3id.org/rdf-connect#>.
+@prefix rdfcp: <https://w3id.org/rdf-connect/processors#>.
 @prefix owl: <http://www.w3.org/2002/07/owl#>.
 
-rdfc:RmlMapper a rdfs:Class, owl:Class;
+rdfcp:RmlMapper a rdfs:Class, owl:Class;
   rdfs:label "RML Mapper";
   rdfs:comment "Executes RML mapping documents with the RMLMapper, reading logical sources from RDF-Connect channels and writing logical targets to them.";
   rdfc:javaImplementationOf rdfc:Processor;
@@ -14,7 +15,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
 [ ] a sh:NodeShape;
   sh:targetClass <Source>;
   sh:property [
-    sh:path rdfc:reader;
+    sh:path rdfcp:reader;
     sh:codeIdentifier "reader";
     sh:name "Reader";
     sh:description "Input channel that provides the data of this logical source.";
@@ -22,14 +23,14 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:maxCount 1;
     sh:class rdfc:Reader;
   ], [
-    sh:path rdfc:mappingId;
+    sh:path rdfcp:mappingId;
     sh:codeIdentifier "mappingId";
     sh:name "Mapping identifier";
     sh:description "Identifier under which this source is registered, matched against the rdfc:reader of an rdfc:Source, a plain literal rml:source, or the dcat:downloadURL of a dcat:Distribution in the mappings; default is the IRI of the input channel.";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ], [
-    sh:path rdfc:triggers;
+    sh:path rdfcp:triggers;
     sh:codeIdentifier "triggers";
     sh:name "Triggers";
     sh:description "Whether new data on this source triggers another execution of the mappings; default is false.";
@@ -41,7 +42,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
 [ ] a sh:NodeShape;
   sh:targetClass <Target>;
   sh:property [
-    sh:path rdfc:writer;
+    sh:path rdfcp:writer;
     sh:codeIdentifier "writer";
     sh:name "Writer";
     sh:description "Output channel that receives the RDF written to this logical target.";
@@ -49,14 +50,14 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:maxCount 1;
     sh:class rdfc:Writer;
   ], [
-    sh:path rdfc:mappingId;
+    sh:path rdfcp:mappingId;
     sh:codeIdentifier "mappingId";
     sh:name "Mapping identifier";
     sh:description "Identifier of the logical target in the mappings; default is the IRI of the output channel.";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ], [
-    sh:path rdfc:format;
+    sh:path rdfcp:format;
     sh:codeIdentifier "format";
     sh:name "Format";
     sh:description "Serialization of the output, such as turtle or trig; default is turtle.";
@@ -68,7 +69,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
 [ ] a sh:NodeShape;
   sh:targetClass <DefaultTarget>;
   sh:property [
-    sh:path rdfc:writer;
+    sh:path rdfcp:writer;
     sh:codeIdentifier "writer";
     sh:name "Writer";
     sh:description "Output channel that receives the RDF of mappings without a logical target.";
@@ -76,7 +77,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:maxCount 1;
     sh:class rdfc:Writer;
   ], [
-    sh:path rdfc:format;
+    sh:path rdfcp:format;
     sh:codeIdentifier "format";
     sh:name "Format";
     sh:description "Serialization of the output, such as turtle or trig; default is turtle.";
@@ -86,9 +87,9 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
   ].
 
 [ ] a sh:NodeShape;
-  sh:targetClass rdfc:RmlMapper;
+  sh:targetClass rdfcp:RmlMapper;
   sh:property [
-    sh:path rdfc:mappings;
+    sh:path rdfcp:mappings;
     sh:codeIdentifier "mappings";
     sh:name "Mappings";
     sh:description "Input channel that streams the RML mapping documents.";
@@ -96,7 +97,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:maxCount 1;
     sh:class rdfc:Reader;
   ], [
-    sh:path rdfc:baseIRI;
+    sh:path rdfcp:baseIRI;
     sh:codeIdentifier "baseIRI";
     sh:name "Base IRI";
     sh:description "Base IRI against which relative IRIs in the mappings are resolved; default is http://example.com/base/.";
@@ -104,7 +105,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:maxCount 1;
     sh:datatype xsd:string;
   ], [
-    sh:path rdfc:waitForMappingClose;
+    sh:path rdfcp:waitForMappingClose;
     sh:codeIdentifier "waitForMappingClose";
     sh:name "Wait for mapping close";
     sh:description "Whether to wait until the mapping channel is closed before executing the mappings; default is false.";
@@ -112,20 +113,20 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:maxCount 1;
     sh:datatype xsd:boolean;
   ], [
-    sh:path rdfc:defaultTarget;
+    sh:path rdfcp:defaultTarget;
     sh:codeIdentifier "defaultTarget";
     sh:name "Default target";
     sh:description "Default target for the RDF of mappings without a logical target.";
     sh:maxCount 1;
     sh:class <DefaultTarget>;
   ], [
-    sh:path rdfc:source;
+    sh:path rdfcp:source;
     sh:codeIdentifier "sources";
     sh:name "Sources";
     sh:description "Logical sources managed by RDF-Connect, whose data the mappings read from channels.";
     sh:class <Source>;
   ], [
-    sh:path rdfc:target;
+    sh:path rdfcp:target;
     sh:codeIdentifier "targets";
     sh:name "Targets";
     sh:description "Logical targets managed by RDF-Connect, whose RDF the processor writes to channels.";

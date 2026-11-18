@@ -2,6 +2,7 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix sh: <http://www.w3.org/ns/shacl#>.
 @prefix rdfc: <https://w3id.org/rdf-connect#>.
+@prefix rdfcp: <https://w3id.org/rdf-connect/processors#>.
 @prefix owl: <http://www.w3.org/2002/07/owl#>.
 
 <> owl:imports <./build/plugins/runner-master-SNAPSHOT-index.jar>.
@@ -39,21 +40,21 @@
   rdfc:closeOnEnd "true".
 
 <default> a rdfc:Reader, rdfc:Writer.
-<mapper> a rdfc:RmlMapper;
-  rdfc:mappings <mappingData>;
-  rdfc:source [
-    rdfc:triggers true;
-    rdfc:reader <data>;
-    rdfc:mappingId rdfc:source1;
+<mapper> a rdfcp:RmlMapper;
+  rdfcp:mappings <mappingData>;
+  rdfcp:source [
+    rdfcp:triggers true;
+    rdfcp:reader <data>;
+    rdfcp:mappingId rdfc:source1;
   ];
-  rdfc:target [
-    rdfc:writer <target1>;
-    rdfc:format "trig";
-    rdfc:mappingId rdfc:target1;
+  rdfcp:target [
+    rdfcp:writer <target1>;
+    rdfcp:format "trig";
+    rdfcp:mappingId rdfc:target1;
   ];
-  rdfc:defaultTarget [
-    rdfc:writer <default>;
-    rdfc:format "trig";
+  rdfcp:defaultTarget [
+    rdfcp:writer <default>;
+    rdfcp:format "trig";
   ].
 
 <targetLogger> a rdfc:LogProcessorJs;
