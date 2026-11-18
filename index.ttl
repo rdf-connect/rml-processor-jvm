@@ -12,8 +12,7 @@ rdfcp:RmlMapper a rdfs:Class, owl:Class;
   rdfc:class "org.example.App";
   rdfc:jar <>.
 
-[ ] a sh:NodeShape;
-  sh:targetClass <Source>;
+rdfcp:RmlMapperSourceShape a sh:NodeShape;
   sh:property [
     sh:path rdfcp:input;
     sh:codeIdentifier "reader";
@@ -40,8 +39,7 @@ rdfcp:RmlMapper a rdfs:Class, owl:Class;
     sh:datatype xsd:boolean;
   ].
 
-[ ] a sh:NodeShape;
-  sh:targetClass <Target>;
+rdfcp:RmlMapperTargetShape a sh:NodeShape;
   sh:property [
     sh:path rdfcp:output;
     sh:codeIdentifier "writer";
@@ -68,8 +66,7 @@ rdfcp:RmlMapper a rdfs:Class, owl:Class;
     sh:datatype xsd:string;
   ].
 
-[ ] a sh:NodeShape;
-  sh:targetClass <DefaultTarget>;
+rdfcp:RmlMapperDefaultTargetShape a sh:NodeShape;
   sh:property [
     sh:path rdfcp:output;
     sh:codeIdentifier "writer";
@@ -121,18 +118,18 @@ rdfcp:RmlMapper a rdfs:Class, owl:Class;
     sh:name "Default target";
     sh:description "Default target for the RDF of mappings without a logical target.";
     sh:maxCount 1;
-    sh:class <DefaultTarget>;
+    sh:node rdfcp:RmlMapperDefaultTargetShape;
   ], [
     sh:path rdfcp:rmlSource;
     sh:codeIdentifier "sources";
     sh:name "Logical sources";
     sh:description "Logical sources managed by RDF-Connect, whose data the mappings read from channels.";
-    sh:class <Source>;
+    sh:node rdfcp:RmlMapperSourceShape;
   ], [
     sh:path rdfcp:rmlTarget;
     sh:codeIdentifier "targets";
     sh:name "Logical targets";
     sh:description "Logical targets managed by RDF-Connect, whose RDF the processor writes to channels.";
-    sh:class <Target>;
+    sh:node rdfcp:RmlMapperTargetShape;
   ].
 

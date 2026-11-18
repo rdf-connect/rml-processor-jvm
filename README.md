@@ -77,7 +77,7 @@ gradle copyPlugins
 
 ## Configuration
 
-### `Source` (if any)
+### Logical source (`rdfcp:RmlMapperSourceShape`)
 
 Each source must provide:
 
@@ -90,7 +90,7 @@ Each source must provide:
 
 Note: at least one source should have `rdfcp:trigger "true"`.
 
-### `Target`
+### Logical target (`rdfcp:RmlMapperTargetShape`)
 
 Each target must provide:
 
@@ -100,7 +100,7 @@ Each target must provide:
 | `rdfcp:mappingId` | IRI or string | Optional identifier used in the mapping     | ⚪       |
 | `rdfcp:format`    | `xsd:string`  | Optional output format ("turtle" or "trig") | ⚪       |
 
-### `DefaultTarget`
+### Default target (`rdfcp:RmlMapperDefaultTargetShape`)
 
 | Property  | Type          | Description                                      | Required |
 |-----------|---------------|--------------------------------------------------|----------|
