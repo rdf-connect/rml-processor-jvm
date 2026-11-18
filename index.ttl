@@ -15,6 +15,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:path rdfc:reader;
     sh:codeIdentifier "reader";
     sh:name "Reader";
+    sh:description "Input channel that provides the data of this logical source.";
     sh:minCount 1;
     sh:maxCount 1;
     sh:class rdfc:Reader;
@@ -22,12 +23,14 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:path rdfc:mappingId;
     sh:codeIdentifier "mappingId";
     sh:name "Mapping identifier";
+    sh:description "Identifier under which this source is registered, matched against the rdfc:reader of an rdfc:Source, a plain literal rml:source, or the dcat:downloadURL of a dcat:Distribution in the mappings; default is the IRI of the input channel.";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ], [
     sh:path rdfc:triggers;
     sh:codeIdentifier "triggers";
     sh:name "Triggers";
+    sh:description "Whether new data on this source triggers another execution of the mappings; default is false.";
     sh:maxCount 1;
     sh:datatype xsd:boolean;
   ].
@@ -38,6 +41,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:path rdfc:writer;
     sh:codeIdentifier "writer";
     sh:name "Writer";
+    sh:description "Output channel that receives the RDF written to this logical target.";
     sh:minCount 1;
     sh:maxCount 1;
     sh:class rdfc:Writer;
@@ -45,12 +49,14 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:path rdfc:mappingId;
     sh:codeIdentifier "mappingId";
     sh:name "Mapping identifier";
+    sh:description "Identifier of the logical target in the mappings; default is the IRI of the output channel.";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ], [
     sh:path rdfc:format;
     sh:codeIdentifier "format";
     sh:name "Format";
+    sh:description "Serialization of the output, such as turtle or trig; default is turtle.";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ].
@@ -61,6 +67,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:path rdfc:writer;
     sh:codeIdentifier "writer";
     sh:name "Writer";
+    sh:description "Output channel that receives the RDF of mappings without a logical target.";
     sh:minCount 1;
     sh:maxCount 1;
     sh:class rdfc:Writer;
@@ -68,6 +75,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:path rdfc:format;
     sh:codeIdentifier "format";
     sh:name "Format";
+    sh:description "Serialization of the output, such as turtle or trig; default is turtle.";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ].
@@ -78,6 +86,7 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:path rdfc:mappings;
     sh:codeIdentifier "mappings";
     sh:name "Mappings";
+    sh:description "Input channel that streams the RML mapping documents.";
     sh:minCount 1;
     sh:maxCount 1;
     sh:class rdfc:Reader;
@@ -85,29 +94,34 @@ rdfc:RmlMapper a rdfs:Class, owl:Class;
     sh:path rdfc:baseIRI;
     sh:codeIdentifier "baseIRI";
     sh:name "Base IRI";
+    sh:description "Base IRI against which relative IRIs in the mappings are resolved; default is http://example.com/base/.";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ], [
     sh:path rdfc:waitForMappingClose;
     sh:codeIdentifier "waitForMappingClose";
     sh:name "Wait for mapping close";
+    sh:description "Whether to wait until the mapping channel is closed before executing the mappings; default is false.";
     sh:maxCount 1;
     sh:datatype xsd:boolean;
   ], [
     sh:path rdfc:defaultTarget;
     sh:codeIdentifier "defaultTarget";
     sh:name "Default target";
+    sh:description "Default target for the RDF of mappings without a logical target.";
     sh:maxCount 1;
     sh:class <DefaultTarget>;
   ], [
     sh:path rdfc:source;
     sh:codeIdentifier "sources";
     sh:name "Sources";
+    sh:description "Logical sources managed by RDF-Connect, whose data the mappings read from channels.";
     sh:class <Source>;
   ], [
     sh:path rdfc:target;
     sh:codeIdentifier "targets";
     sh:name "Targets";
+    sh:description "Logical targets managed by RDF-Connect, whose RDF the processor writes to channels.";
     sh:class <Target>;
   ].
 
