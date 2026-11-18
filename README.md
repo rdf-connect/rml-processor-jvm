@@ -85,10 +85,10 @@ Each source must provide:
 |-------------|---------------|---------------------------------------|----------|
 | `rdfcp:input`    | `rdfc:Reader` | Component that reads data             | ✅       |
 | `rdfcp:mappingId` | `xsd:string`  | Optional identifier used in the mapping | ⚪       |
-| `rdfcp:triggers`  | `xsd:boolean` | Optional flag to trigger mapping      | ⚪       |
+| `rdfcp:trigger`  | `xsd:boolean` | Optional flag to trigger mapping      | ⚪       |
 
 
-Note: at least one source should have `rdfcp:triggers "true"`.
+Note: at least one source should have `rdfcp:trigger "true"`.
 
 ### `Target`
 
@@ -116,8 +116,8 @@ Each target must provide:
 | `rdfcp:baseIRI`             | `xsd:string`   | Optional base IRI for resolving relative IRIs            | ⚪       |
 | `rdfcp:waitForMappingClose` | `xsd:boolean`  | Wait for mapping input completion before processing data | ⚪       |
 | `rdfcp:defaultTarget`       | `DefaultTarget`| Optional default target for unmapped outputs             | ⚪       |
-| `rdfcp:source`              | `Source`       | Input sources (multiple allowed)                         | ⚪       |
-| `rdfcp:target`              | `Target`       | Output targets (multiple allowed)                        | ⚪       |
+| `rdfcp:rmlSource`              | `Source`       | Input sources (multiple allowed)                         | ⚪       |
+| `rdfcp:rmlTarget`              | `Target`       | Output targets (multiple allowed)                        | ⚪       |
 
 
 ### RML Mapping File
@@ -130,7 +130,7 @@ The mapping file should include RDF-Connect specific configuration for both the 
 The processor has to decide, for every logical source in the mapping, *which* incoming
 channel it should read. Both sides agree on a single **string key**:
 
-* **Registration.** Every `rdfcp:source` in the pipeline is registered under its
+* **Registration.** Every `rdfcp:rmlSource` in the pipeline is registered under its
   `rdfcp:mappingId` if it has one, and under the reader channel's own IRI if it does not.
 * **Lookup.** The processor collects every `rml:source` on the logical source and walks
   them in order, returning the first one that resolves to a registered key.
@@ -193,12 +193,12 @@ This reads `mapping.ttl` and `data.json`, both `rdfc:target1` and the default ta
 <default> a rdfc:Reader, rdfc:Writer.
 <mapper> a rdfcp:RmlMapper;
   rdfcp:input <mappingData>;
-  rdfcp:source [
-    rdfcp:triggers true;
+  rdfcp:rmlSource [
+    rdfcp:trigger true;
     rdfcp:input <data>;
     rdfcp:mappingId rdfc:source1;
   ];
-  rdfcp:target [
+  rdfcp:rmlTarget [
     rdfcp:output <default>;
     rdfcp:format "trig";
     rdfcp:mappingId rdfc:target1;
@@ -308,10 +308,10 @@ the table would apply instead — either way the same name resolves.
 <data> a rdfc:Reader, rdfc:Writer.
 <mapper> a rdfcp:RmlMapper;
   rdfcp:input <mappingData>;
-  rdfcp:source [
+  rdfcp:rmlSource [
     rdfcp:input <data>;
     rdfcp:mappingId "students";                 # <- matches the YARRRML source name
-    rdfcp:triggers true;
+    rdfcp:trigger true;
   ];
   rdfcp:defaultTarget [ rdfcp:output <out>; rdfcp:format "trig" ].
 ```

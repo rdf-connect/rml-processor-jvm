@@ -42,12 +42,12 @@
 <default> a rdfc:Reader, rdfc:Writer.
 <mapper> a rdfcp:RmlMapper;
   rdfcp:input <mappingData>;
-  rdfcp:source [
-    rdfcp:triggers true;
+  rdfcp:rmlSource [
+    rdfcp:trigger true;
     rdfcp:input <data>;
     rdfcp:mappingId rdfc:source1;
   ];
-  rdfcp:target [
+  rdfcp:rmlTarget [
     rdfcp:output <target1>;
     rdfcp:format "trig";
     rdfcp:mappingId rdfc:target1;
