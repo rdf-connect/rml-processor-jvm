@@ -10,7 +10,7 @@
     "@rdfc/file-utils-processors-ts": "^1.0.1",
     "@rdfc/js-runner": "^3.4.0",
     "@rdfc/log-processor-ts": "^2.0.1",
-    "@rdfc/orchestrator-js": "^2.3.0"
+    "@rdfc/orchestrator-js": "^2.4.0"
   },
   "keywords": [],
   "author": "",
