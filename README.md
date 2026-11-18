@@ -77,47 +77,45 @@ gradle copyPlugins
 
 ## Configuration
 
-### `Source` (if any)
+All processor and parameter IRIs are in the `rdfcp:` namespace, `https://w3id.org/rdf-connect/processors#`.
 
-Each source must provide:
+### Logical source (`rdfcp:RmlMapperSourceShape`)
 
-| Property     | Type          | Description                          | Required |
-|-------------|---------------|---------------------------------------|----------|
-| `rdfc:reader`    | `rdfc:Reader` | Component that reads data             | ✅       |
-| `rdfc:mappingId` | `xsd:string`  | Optional identifier used in the mapping | ⚪       |
-| `rdfc:triggers`  | `xsd:boolean` | Optional flag to trigger mapping      | ⚪       |
+| Property          | Type          | Description                                                                 | Required |
+|-------------------|---------------|-----------------------------------------------------------------------------|----------|
+| `rdfcp:input`     | `rdfc:Reader` | Channel that provides the data of this source                               | ✅       |
+| `rdfcp:mappingId` | IRI or string | Identifier the mappings use for this source; defaults to the channel's IRI  | ⚪       |
+| `rdfcp:trigger`   | `xsd:boolean` | Whether new data on this source executes the mappings again; default `false` | ⚪       |
 
+Note: at least one source should have `rdfcp:trigger true`.
 
-Note: at least one source should have `rdfc:triggers "true"`.
+### Logical target (`rdfcp:RmlMapperTargetShape`)
 
-### `Target`
+| Property          | Type          | Description                                                                 | Required |
+|-------------------|---------------|-----------------------------------------------------------------------------|----------|
+| `rdfcp:output`    | `rdfc:Writer` | Channel that receives the RDF of this logical target                        | ✅       |
+| `rdfcp:mappingId` | IRI or string | Identifier of the logical target in the mappings; defaults to the channel's IRI | ⚪   |
+| `rdfcp:format`    | `xsd:string`  | Output format, `turtle` or `trig`; default `turtle`                         | ⚪       |
 
-Each target must provide:
+### Default target (`rdfcp:RmlMapperDefaultTargetShape`)
 
-| Property  | Type          | Description                                        | Required |
-|-----------|---------------|----------------------------------------------------|----------|
-| `rdfc:writer`    | `rdfc:Writer` | Component that writes data to target        | ✅       |
-| `rdfc:mappingId` | `xsd:string`  | Optional identifier used in the mapping     | ⚪       |
-| `rdfc:format`    | `xsd:string`  | Optional output format ("turtle" or "trig") | ⚪       |
+| Property        | Type          | Description                                         | Required |
+|-----------------|---------------|-----------------------------------------------------|----------|
+| `rdfcp:output`  | `rdfc:Writer` | Channel that receives the RDF of mappings without a logical target | ✅ |
+| `rdfcp:format`  | `xsd:string`  | Output format, `turtle` or `trig`; default `turtle` | ⚪       |
 
-### `DefaultTarget`
+### `rdfcp:RmlMapper`
 
-| Property  | Type          | Description                                      | Required |
-|-----------|---------------|--------------------------------------------------|----------|
-| `rdfc:writer`  | `rdfc:Writer` | Writer for unmapped outputs                 | ✅       |
-| `rdfc:format`  | `xsd:string`  | Optional output format ("turtle" or "trig") | ⚪       |
+| Property                     | Type                                | Description                                                              | Required |
+|------------------------------|-------------------------------------|--------------------------------------------------------------------------|----------|
+| `rdfcp:input`                | `rdfc:Reader`                       | Channel that streams the RML mapping documents                           | ✅       |
+| `rdfcp:baseIRI`              | IRI or string                       | Base IRI for relative IRIs; default `http://example.com/base/`           | ⚪       |
+| `rdfcp:waitForMappingClose`  | `xsd:boolean`                       | Wait until the mapping channel closes before executing; default `false`  | ⚪       |
+| `rdfcp:defaultTarget`        | `rdfcp:RmlMapperDefaultTargetShape` | Target for the RDF of mappings without a logical target                  | ⚪       |
+| `rdfcp:rmlSource`            | `rdfcp:RmlMapperSourceShape`        | Logical sources read from channels (multiple allowed)                    | ⚪       |
+| `rdfcp:rmlTarget`            | `rdfcp:RmlMapperTargetShape`        | Logical targets written to channels (multiple allowed)                   | ⚪       |
 
-
-### RmlMapper Properties
-
-| Property                   | Type           | Description                                              | Required |
-|----------------------------|----------------|----------------------------------------------------------|----------|
-| `rdfc:mappings`            | `rdfc:Reader`  | Mappings to apply                                        | ✅       |
-| `rdfc:baseIRI`             | `xsd:string`   | Optional base IRI for resolving relative IRIs            | ⚪       |
-| `rdfc:waitForMappingClose` | `xsd:boolean`  | Wait for mapping input completion before processing data | ⚪       |
-| `rdfc:defaultTarget`       | `DefaultTarget`| Optional default target for unmapped outputs             | ⚪       |
-| `rdfc:source`              | `Source`       | Input sources (multiple allowed)                         | ⚪       |
-| `rdfc:target`              | `Target`       | Output targets (multiple allowed)                        | ⚪       |
+Sources and targets are written as blank nodes; they need no `rdf:type`.
 
 
 ### RML Mapping File
@@ -130,8 +128,8 @@ The mapping file should include RDF-Connect specific configuration for both the 
 The processor has to decide, for every logical source in the mapping, *which* incoming
 channel it should read. Both sides agree on a single **string key**:
 
-* **Registration.** Every `rdfc:source` in the pipeline is registered under its
-  `rdfc:mappingId` if it has one, and under the reader channel's own IRI if it does not.
+* **Registration.** Every `rdfcp:rmlSource` in the pipeline is registered under its
+  `rdfcp:mappingId` if it has one, and under the reader channel's own IRI if it does not.
 * **Lookup.** The processor collects every `rml:source` on the logical source and walks
   them in order, returning the first one that resolves to a registered key.
 
@@ -162,15 +160,15 @@ rml:source [
 ]
 ```
 
-Note that `rdfc:mappingId rdfc:source1` registers the *expanded* IRI
+Note that `rdfcp:mappingId rdfc:source1` registers the *expanded* IRI
 `https://w3id.org/rdf-connect#source1`, so the mapping file has to expand its prefix the
-same way. Using a plain string id on both sides (`rdfc:mappingId "students"` and
+same way. Using a plain string id on both sides (`rdfcp:mappingId "students"` and
 `rml:source "students"`) sidesteps that entirely.
 
 
 #### Logical Target
 
-A logical target MUST be defined as either the identifier of the channel, or the value of the `rdfc:mappingId` property.
+A logical target MUST be defined as either the identifier of the channel, or the value of the `rdfcp:mappingId` property.
 
 
 ## Compact Example
@@ -191,21 +189,21 @@ This reads `mapping.ttl` and `data.json`, both `rdfc:target1` and the default ta
   rdfc:closeOnEnd "false".
 
 <default> a rdfc:Reader, rdfc:Writer.
-<mapper> a rdfc:RmlMapper;
-  rdfc:mappings <mappingData>;
-  rdfc:source [
-    rdfc:triggers true;
-    rdfc:reader <data>;
-    rdfc:mappingId rdfc:source1;
+<mapper> a rdfcp:RmlMapper;
+  rdfcp:input <mappingData>;
+  rdfcp:rmlSource [
+    rdfcp:trigger true;
+    rdfcp:input <data>;
+    rdfcp:mappingId rdfc:source1;
   ];
-  rdfc:target [
-    rdfc:writer <default>;
-    rdfc:format "trig";
-    rdfc:mappingId rdfc:target1;
+  rdfcp:rmlTarget [
+    rdfcp:output <default>;
+    rdfcp:format "trig";
+    rdfcp:mappingId rdfc:target1;
   ];
-  rdfc:defaultTarget [
-    rdfc:writer <default>;
-    rdfc:format "trig";
+  rdfcp:defaultTarget [
+    rdfcp:output <default>;
+    rdfcp:format "trig";
   ].
 ```
 
@@ -216,7 +214,7 @@ Example RML mapping file definition.
     rml:source [
       a rdfc:Source;
       # get input from rdfc:source1
-      # which is mapped with rdfc:mappingId to <data> in the pipeline
+      # which is mapped with rdfcp:mappingId to <data> in the pipeline
       rdfc:reader rdfc:source1;
       rdfc:mimeType "application/json";
     ];
@@ -229,7 +227,7 @@ Example RML mapping file definition.
     rr:objectMap [
       rml:reference "Name";
       # write this triple to rdfc:target1
-      # which is mapped with rdfc:mappingId to <default> in the pipeline
+      # which is mapped with rdfcp:mappingId to <default> in the pipeline
       rml:logicalTarget rdfc:target1;
     ];
   ].
@@ -241,7 +239,7 @@ YARRRML mappings work without any post-processing: name the source in YARRRML wh
 registered it as in the pipeline. Here is the full path a source name travels.
 
 **1. What you write** — `mapping.yml`. The part before `~` is the source name; give it the
-same value you use as `rdfc:mappingId`.
+same value you use as `rdfcp:mappingId`.
 
 ```yaml
 prefixes:
@@ -306,20 +304,20 @@ the table would apply instead — either way the same name resolves.
 
 ```turtle
 <data> a rdfc:Reader, rdfc:Writer.
-<mapper> a rdfc:RmlMapper;
-  rdfc:mappings <mappingData>;
-  rdfc:source [
-    rdfc:reader <data>;
-    rdfc:mappingId "students";                 # <- matches the YARRRML source name
-    rdfc:triggers true;
+<mapper> a rdfcp:RmlMapper;
+  rdfcp:input <mappingData>;
+  rdfcp:rmlSource [
+    rdfcp:input <data>;
+    rdfcp:mappingId "students";                 # <- matches the YARRRML source name
+    rdfcp:trigger true;
   ];
-  rdfc:defaultTarget [ rdfc:writer <out>; rdfc:format "trig" ].
+  rdfcp:defaultTarget [ rdfcp:output <out>; rdfcp:format "trig" ].
 ```
 
 If the name does not match anything registered, the mapping falls through to plain RML
 resolution and the rmlmapper looks for a *file* called `students`, failing with
 `Cannot find students`. That error almost always means the YARRRML source name and the
-`rdfc:mappingId` have drifted apart.
+`rdfcp:mappingId` have drifted apart.
 
 ## Development
 

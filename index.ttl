@@ -2,98 +2,134 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
 @prefix sh: <http://www.w3.org/ns/shacl#>.
 @prefix rdfc: <https://w3id.org/rdf-connect#>.
+@prefix rdfcp: <https://w3id.org/rdf-connect/processors#>.
 @prefix owl: <http://www.w3.org/2002/07/owl#>.
 
-rdfc:RmlMapper a rdfs:Class, owl:Class;
+rdfcp:RmlMapper a rdfs:Class, owl:Class;
+  rdfs:label "RML Mapper";
+  rdfs:comment "Executes RML mapping documents with the RMLMapper, reading logical sources from RDF-Connect channels and writing logical targets to them.";
   rdfc:javaImplementationOf rdfc:Processor;
   rdfc:class "org.example.App";
   rdfc:jar <>.
 
-[ ] a sh:NodeShape;
-  sh:targetClass <Source>;
+rdfcp:RmlMapperSourceShape a sh:NodeShape;
   sh:property [
-    sh:path rdfc:reader;
-    sh:name "reader";
+    sh:path rdfcp:input;
+    sh:codeIdentifier "reader";
+    sh:name "Input channel";
+    sh:description "Input channel that provides the data of this logical source.";
     sh:minCount 1;
     sh:maxCount 1;
     sh:class rdfc:Reader;
   ], [
-    sh:path rdfc:mappingId;
-    sh:name "mappingId";
+    sh:path rdfcp:mappingId;
+    sh:codeIdentifier "mappingId";
+    sh:name "Mapping identifier";
+    sh:description "Identifier under which this source is registered, matched against the rdfc:reader of an rdfc:Source, a plain literal rml:source, or the dcat:downloadURL of a dcat:Distribution in the mappings; default is the IRI of the input channel.";
     sh:maxCount 1;
-    sh:datatype xsd:string;
+    sh:nodeKind sh:IRIOrLiteral;
+    sh:codeType xsd:string;
   ], [
-    sh:path rdfc:triggers;
-    sh:name "triggers";
+    sh:path rdfcp:trigger;
+    sh:codeIdentifier "triggers";
+    sh:name "Trigger";
+    sh:description "Whether new data on this source triggers another execution of the mappings; default is false.";
+    sh:defaultValue false;
     sh:maxCount 1;
     sh:datatype xsd:boolean;
   ].
 
-[ ] a sh:NodeShape;
-  sh:targetClass <Target>;
+rdfcp:RmlMapperTargetShape a sh:NodeShape;
   sh:property [
-    sh:path rdfc:writer;
-    sh:name "writer";
+    sh:path rdfcp:output;
+    sh:codeIdentifier "writer";
+    sh:name "Output channel";
+    sh:description "Output channel that receives the RDF written to this logical target.";
     sh:minCount 1;
     sh:maxCount 1;
     sh:class rdfc:Writer;
   ], [
-    sh:path rdfc:mappingId;
-    sh:name "mappingId";
+    sh:path rdfcp:mappingId;
+    sh:codeIdentifier "mappingId";
+    sh:name "Mapping identifier";
+    sh:description "Identifier of the logical target in the mappings; default is the IRI of the output channel.";
+    sh:maxCount 1;
+    sh:nodeKind sh:IRIOrLiteral;
+    sh:codeType xsd:string;
+  ], [
+    sh:path rdfcp:format;
+    sh:codeIdentifier "format";
+    sh:name "Format";
+    sh:description "Serialization of the output, such as turtle or trig; default is turtle.";
+    sh:defaultValue "turtle";
     sh:maxCount 1;
     sh:datatype xsd:string;
+  ].
+
+rdfcp:RmlMapperDefaultTargetShape a sh:NodeShape;
+  sh:property [
+    sh:path rdfcp:output;
+    sh:codeIdentifier "writer";
+    sh:name "Output channel";
+    sh:description "Output channel that receives the RDF of mappings without a logical target.";
+    sh:minCount 1;
+    sh:maxCount 1;
+    sh:class rdfc:Writer;
   ], [
-    sh:path rdfc:format;
-    sh:name "format";
+    sh:path rdfcp:format;
+    sh:codeIdentifier "format";
+    sh:name "Format";
+    sh:description "Serialization of the output, such as turtle or trig; default is turtle.";
+    sh:defaultValue "turtle";
     sh:maxCount 1;
     sh:datatype xsd:string;
   ].
 
 [ ] a sh:NodeShape;
-  sh:targetClass <DefaultTarget>;
+  sh:targetClass rdfcp:RmlMapper;
   sh:property [
-    sh:path rdfc:writer;
-    sh:name "writer";
-    sh:minCount 1;
-    sh:maxCount 1;
-    sh:class rdfc:Writer;
-  ], [
-    sh:path rdfc:format;
-    sh:name "format";
-    sh:maxCount 1;
-    sh:datatype xsd:string;
-  ].
-
-[ ] a sh:NodeShape;
-  sh:targetClass rdfc:RmlMapper;
-  sh:property [
-    sh:path rdfc:mappings;
-    sh:name "mappings";
+    sh:path rdfcp:input;
+    sh:codeIdentifier "mappings";
+    sh:name "Input channel";
+    sh:description "Input channel that streams the RML mapping documents.";
     sh:minCount 1;
     sh:maxCount 1;
     sh:class rdfc:Reader;
   ], [
-    sh:path rdfc:baseIRI;
-    sh:name "baseIRI";
+    sh:path rdfcp:baseIRI;
+    sh:codeIdentifier "baseIRI";
+    sh:name "Base IRI";
+    sh:description "Base IRI against which relative IRIs in the mappings are resolved; default is http://example.com/base/.";
+    sh:defaultValue "http://example.com/base/";
     sh:maxCount 1;
-    sh:datatype xsd:string;
+    sh:nodeKind sh:IRIOrLiteral;
+    sh:codeType xsd:string;
   ], [
-    sh:path rdfc:waitForMappingClose;
-    sh:name "waitForMappingClose";
+    sh:path rdfcp:waitForMappingClose;
+    sh:codeIdentifier "waitForMappingClose";
+    sh:name "Wait for mapping close";
+    sh:description "Whether to wait until the mapping channel is closed before executing the mappings; default is false.";
+    sh:defaultValue false;
     sh:maxCount 1;
     sh:datatype xsd:boolean;
   ], [
-    sh:path rdfc:defaultTarget;
-    sh:name "defaultTarget";
+    sh:path rdfcp:defaultTarget;
+    sh:codeIdentifier "defaultTarget";
+    sh:name "Default target";
+    sh:description "Default target for the RDF of mappings without a logical target.";
     sh:maxCount 1;
-    sh:class <DefaultTarget>;
+    sh:node rdfcp:RmlMapperDefaultTargetShape;
   ], [
-    sh:path rdfc:source;
-    sh:name "sources";
-    sh:class <Source>;
+    sh:path rdfcp:rmlSource;
+    sh:codeIdentifier "sources";
+    sh:name "Logical sources";
+    sh:description "Logical sources managed by RDF-Connect, whose data the mappings read from channels.";
+    sh:node rdfcp:RmlMapperSourceShape;
   ], [
-    sh:path rdfc:target;
-    sh:name "targets";
-    sh:class <Target>;
+    sh:path rdfcp:rmlTarget;
+    sh:codeIdentifier "targets";
+    sh:name "Logical targets";
+    sh:description "Logical targets managed by RDF-Connect, whose RDF the processor writes to channels.";
+    sh:node rdfcp:RmlMapperTargetShape;
   ].
 
