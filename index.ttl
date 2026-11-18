@@ -28,7 +28,8 @@ rdfcp:RmlMapper a rdfs:Class, owl:Class;
     sh:name "Mapping identifier";
     sh:description "Identifier under which this source is registered, matched against the rdfc:reader of an rdfc:Source, a plain literal rml:source, or the dcat:downloadURL of a dcat:Distribution in the mappings; default is the IRI of the input channel.";
     sh:maxCount 1;
-    sh:datatype xsd:string;
+    sh:nodeKind sh:IRIOrLiteral;
+    sh:codeType xsd:string;
   ], [
     sh:path rdfcp:trigger;
     sh:codeIdentifier "triggers";
@@ -55,7 +56,8 @@ rdfcp:RmlMapper a rdfs:Class, owl:Class;
     sh:name "Mapping identifier";
     sh:description "Identifier of the logical target in the mappings; default is the IRI of the output channel.";
     sh:maxCount 1;
-    sh:datatype xsd:string;
+    sh:nodeKind sh:IRIOrLiteral;
+    sh:codeType xsd:string;
   ], [
     sh:path rdfcp:format;
     sh:codeIdentifier "format";
@@ -103,7 +105,8 @@ rdfcp:RmlMapper a rdfs:Class, owl:Class;
     sh:description "Base IRI against which relative IRIs in the mappings are resolved; default is http://example.com/base/.";
     sh:defaultValue "http://example.com/base/";
     sh:maxCount 1;
-    sh:datatype xsd:string;
+    sh:nodeKind sh:IRIOrLiteral;
+    sh:codeType xsd:string;
   ], [
     sh:path rdfcp:waitForMappingClose;
     sh:codeIdentifier "waitForMappingClose";

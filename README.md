@@ -84,7 +84,7 @@ Each source must provide:
 | Property     | Type          | Description                          | Required |
 |-------------|---------------|---------------------------------------|----------|
 | `rdfcp:input`    | `rdfc:Reader` | Component that reads data             | ✅       |
-| `rdfcp:mappingId` | `xsd:string`  | Optional identifier used in the mapping | ⚪       |
+| `rdfcp:mappingId` | IRI or string | Optional identifier used in the mapping | ⚪       |
 | `rdfcp:trigger`  | `xsd:boolean` | Optional flag to trigger mapping      | ⚪       |
 
 
@@ -97,7 +97,7 @@ Each target must provide:
 | Property  | Type          | Description                                        | Required |
 |-----------|---------------|----------------------------------------------------|----------|
 | `rdfcp:output`    | `rdfc:Writer` | Component that writes data to target        | ✅       |
-| `rdfcp:mappingId` | `xsd:string`  | Optional identifier used in the mapping     | ⚪       |
+| `rdfcp:mappingId` | IRI or string | Optional identifier used in the mapping     | ⚪       |
 | `rdfcp:format`    | `xsd:string`  | Optional output format ("turtle" or "trig") | ⚪       |
 
 ### `DefaultTarget`
@@ -113,7 +113,7 @@ Each target must provide:
 | Property                   | Type           | Description                                              | Required |
 |----------------------------|----------------|----------------------------------------------------------|----------|
 | `rdfcp:input`            | `rdfc:Reader`  | Mappings to apply                                        | ✅       |
-| `rdfcp:baseIRI`             | `xsd:string`   | Optional base IRI for resolving relative IRIs            | ⚪       |
+| `rdfcp:baseIRI`             | IRI or string  | Optional base IRI for resolving relative IRIs            | ⚪       |
 | `rdfcp:waitForMappingClose` | `xsd:boolean`  | Wait for mapping input completion before processing data | ⚪       |
 | `rdfcp:defaultTarget`       | `DefaultTarget`| Optional default target for unmapped outputs             | ⚪       |
 | `rdfcp:rmlSource`              | `Source`       | Input sources (multiple allowed)                         | ⚪       |
