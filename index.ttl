@@ -15,9 +15,9 @@ rdfcp:RmlMapper a rdfs:Class, owl:Class;
 [ ] a sh:NodeShape;
   sh:targetClass <Source>;
   sh:property [
-    sh:path rdfcp:reader;
+    sh:path rdfcp:input;
     sh:codeIdentifier "reader";
-    sh:name "Reader";
+    sh:name "Input channel";
     sh:description "Input channel that provides the data of this logical source.";
     sh:minCount 1;
     sh:maxCount 1;
@@ -42,9 +42,9 @@ rdfcp:RmlMapper a rdfs:Class, owl:Class;
 [ ] a sh:NodeShape;
   sh:targetClass <Target>;
   sh:property [
-    sh:path rdfcp:writer;
+    sh:path rdfcp:output;
     sh:codeIdentifier "writer";
-    sh:name "Writer";
+    sh:name "Output channel";
     sh:description "Output channel that receives the RDF written to this logical target.";
     sh:minCount 1;
     sh:maxCount 1;
@@ -69,9 +69,9 @@ rdfcp:RmlMapper a rdfs:Class, owl:Class;
 [ ] a sh:NodeShape;
   sh:targetClass <DefaultTarget>;
   sh:property [
-    sh:path rdfcp:writer;
+    sh:path rdfcp:output;
     sh:codeIdentifier "writer";
-    sh:name "Writer";
+    sh:name "Output channel";
     sh:description "Output channel that receives the RDF of mappings without a logical target.";
     sh:minCount 1;
     sh:maxCount 1;
@@ -89,9 +89,9 @@ rdfcp:RmlMapper a rdfs:Class, owl:Class;
 [ ] a sh:NodeShape;
   sh:targetClass rdfcp:RmlMapper;
   sh:property [
-    sh:path rdfcp:mappings;
+    sh:path rdfcp:input;
     sh:codeIdentifier "mappings";
-    sh:name "Mappings";
+    sh:name "Input channel";
     sh:description "Input channel that streams the RML mapping documents.";
     sh:minCount 1;
     sh:maxCount 1;

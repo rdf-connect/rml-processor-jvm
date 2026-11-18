@@ -83,7 +83,7 @@ Each source must provide:
 
 | Property     | Type          | Description                          | Required |
 |-------------|---------------|---------------------------------------|----------|
-| `rdfcp:reader`    | `rdfc:Reader` | Component that reads data             | ✅       |
+| `rdfcp:input`    | `rdfc:Reader` | Component that reads data             | ✅       |
 | `rdfcp:mappingId` | `xsd:string`  | Optional identifier used in the mapping | ⚪       |
 | `rdfcp:triggers`  | `xsd:boolean` | Optional flag to trigger mapping      | ⚪       |
 
@@ -96,7 +96,7 @@ Each target must provide:
 
 | Property  | Type          | Description                                        | Required |
 |-----------|---------------|----------------------------------------------------|----------|
-| `rdfcp:writer`    | `rdfc:Writer` | Component that writes data to target        | ✅       |
+| `rdfcp:output`    | `rdfc:Writer` | Component that writes data to target        | ✅       |
 | `rdfcp:mappingId` | `xsd:string`  | Optional identifier used in the mapping     | ⚪       |
 | `rdfcp:format`    | `xsd:string`  | Optional output format ("turtle" or "trig") | ⚪       |
 
@@ -104,7 +104,7 @@ Each target must provide:
 
 | Property  | Type          | Description                                      | Required |
 |-----------|---------------|--------------------------------------------------|----------|
-| `rdfcp:writer`  | `rdfc:Writer` | Writer for unmapped outputs                 | ✅       |
+| `rdfcp:output`  | `rdfc:Writer` | Writer for unmapped outputs                 | ✅       |
 | `rdfcp:format`  | `xsd:string`  | Optional output format ("turtle" or "trig") | ⚪       |
 
 
@@ -112,7 +112,7 @@ Each target must provide:
 
 | Property                   | Type           | Description                                              | Required |
 |----------------------------|----------------|----------------------------------------------------------|----------|
-| `rdfcp:mappings`            | `rdfc:Reader`  | Mappings to apply                                        | ✅       |
+| `rdfcp:input`            | `rdfc:Reader`  | Mappings to apply                                        | ✅       |
 | `rdfcp:baseIRI`             | `xsd:string`   | Optional base IRI for resolving relative IRIs            | ⚪       |
 | `rdfcp:waitForMappingClose` | `xsd:boolean`  | Wait for mapping input completion before processing data | ⚪       |
 | `rdfcp:defaultTarget`       | `DefaultTarget`| Optional default target for unmapped outputs             | ⚪       |
@@ -192,19 +192,19 @@ This reads `mapping.ttl` and `data.json`, both `rdfc:target1` and the default ta
 
 <default> a rdfc:Reader, rdfc:Writer.
 <mapper> a rdfcp:RmlMapper;
-  rdfcp:mappings <mappingData>;
+  rdfcp:input <mappingData>;
   rdfcp:source [
     rdfcp:triggers true;
-    rdfcp:reader <data>;
+    rdfcp:input <data>;
     rdfcp:mappingId rdfc:source1;
   ];
   rdfcp:target [
-    rdfcp:writer <default>;
+    rdfcp:output <default>;
     rdfcp:format "trig";
     rdfcp:mappingId rdfc:target1;
   ];
   rdfcp:defaultTarget [
-    rdfcp:writer <default>;
+    rdfcp:output <default>;
     rdfcp:format "trig";
   ].
 ```
@@ -307,13 +307,13 @@ the table would apply instead — either way the same name resolves.
 ```turtle
 <data> a rdfc:Reader, rdfc:Writer.
 <mapper> a rdfcp:RmlMapper;
-  rdfcp:mappings <mappingData>;
+  rdfcp:input <mappingData>;
   rdfcp:source [
-    rdfcp:reader <data>;
+    rdfcp:input <data>;
     rdfcp:mappingId "students";                 # <- matches the YARRRML source name
     rdfcp:triggers true;
   ];
-  rdfcp:defaultTarget [ rdfcp:writer <out>; rdfcp:format "trig" ].
+  rdfcp:defaultTarget [ rdfcp:output <out>; rdfcp:format "trig" ].
 ```
 
 If the name does not match anything registered, the mapping falls through to plain RML
