@@ -5,6 +5,8 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#>.
 
 rdfc:RmlMapper a rdfs:Class, owl:Class;
+  rdfs:label "RML Mapper";
+  rdfs:comment "Executes RML mapping documents with the RMLMapper, reading logical sources from RDF-Connect channels and writing logical targets to them.";
   rdfc:javaImplementationOf rdfc:Processor;
   rdfc:class "org.example.App";
   rdfc:jar <>.
