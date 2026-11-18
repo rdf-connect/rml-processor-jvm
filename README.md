@@ -77,47 +77,45 @@ gradle copyPlugins
 
 ## Configuration
 
+All processor and parameter IRIs are in the `rdfcp:` namespace, `https://w3id.org/rdf-connect/processors#`.
+
 ### Logical source (`rdfcp:RmlMapperSourceShape`)
 
-Each source must provide:
+| Property          | Type          | Description                                                                 | Required |
+|-------------------|---------------|-----------------------------------------------------------------------------|----------|
+| `rdfcp:input`     | `rdfc:Reader` | Channel that provides the data of this source                               | ✅       |
+| `rdfcp:mappingId` | IRI or string | Identifier the mappings use for this source; defaults to the channel's IRI  | ⚪       |
+| `rdfcp:trigger`   | `xsd:boolean` | Whether new data on this source executes the mappings again; default `false` | ⚪       |
 
-| Property     | Type          | Description                          | Required |
-|-------------|---------------|---------------------------------------|----------|
-| `rdfcp:input`    | `rdfc:Reader` | Component that reads data             | ✅       |
-| `rdfcp:mappingId` | IRI or string | Optional identifier used in the mapping | ⚪       |
-| `rdfcp:trigger`  | `xsd:boolean` | Optional flag to trigger mapping      | ⚪       |
-
-
-Note: at least one source should have `rdfcp:trigger "true"`.
+Note: at least one source should have `rdfcp:trigger true`.
 
 ### Logical target (`rdfcp:RmlMapperTargetShape`)
 
-Each target must provide:
-
-| Property  | Type          | Description                                        | Required |
-|-----------|---------------|----------------------------------------------------|----------|
-| `rdfcp:output`    | `rdfc:Writer` | Component that writes data to target        | ✅       |
-| `rdfcp:mappingId` | IRI or string | Optional identifier used in the mapping     | ⚪       |
-| `rdfcp:format`    | `xsd:string`  | Optional output format ("turtle" or "trig") | ⚪       |
+| Property          | Type          | Description                                                                 | Required |
+|-------------------|---------------|-----------------------------------------------------------------------------|----------|
+| `rdfcp:output`    | `rdfc:Writer` | Channel that receives the RDF of this logical target                        | ✅       |
+| `rdfcp:mappingId` | IRI or string | Identifier of the logical target in the mappings; defaults to the channel's IRI | ⚪   |
+| `rdfcp:format`    | `xsd:string`  | Output format, `turtle` or `trig`; default `turtle`                         | ⚪       |
 
 ### Default target (`rdfcp:RmlMapperDefaultTargetShape`)
 
-| Property  | Type          | Description                                      | Required |
-|-----------|---------------|--------------------------------------------------|----------|
-| `rdfcp:output`  | `rdfc:Writer` | Writer for unmapped outputs                 | ✅       |
-| `rdfcp:format`  | `xsd:string`  | Optional output format ("turtle" or "trig") | ⚪       |
+| Property        | Type          | Description                                         | Required |
+|-----------------|---------------|-----------------------------------------------------|----------|
+| `rdfcp:output`  | `rdfc:Writer` | Channel that receives the RDF of mappings without a logical target | ✅ |
+| `rdfcp:format`  | `xsd:string`  | Output format, `turtle` or `trig`; default `turtle` | ⚪       |
 
+### `rdfcp:RmlMapper`
 
-### RmlMapper Properties
+| Property                     | Type                                | Description                                                              | Required |
+|------------------------------|-------------------------------------|--------------------------------------------------------------------------|----------|
+| `rdfcp:input`                | `rdfc:Reader`                       | Channel that streams the RML mapping documents                           | ✅       |
+| `rdfcp:baseIRI`              | IRI or string                       | Base IRI for relative IRIs; default `http://example.com/base/`           | ⚪       |
+| `rdfcp:waitForMappingClose`  | `xsd:boolean`                       | Wait until the mapping channel closes before executing; default `false`  | ⚪       |
+| `rdfcp:defaultTarget`        | `rdfcp:RmlMapperDefaultTargetShape` | Target for the RDF of mappings without a logical target                  | ⚪       |
+| `rdfcp:rmlSource`            | `rdfcp:RmlMapperSourceShape`        | Logical sources read from channels (multiple allowed)                    | ⚪       |
+| `rdfcp:rmlTarget`            | `rdfcp:RmlMapperTargetShape`        | Logical targets written to channels (multiple allowed)                   | ⚪       |
 
-| Property                   | Type           | Description                                              | Required |
-|----------------------------|----------------|----------------------------------------------------------|----------|
-| `rdfcp:input`            | `rdfc:Reader`  | Mappings to apply                                        | ✅       |
-| `rdfcp:baseIRI`             | IRI or string  | Optional base IRI for resolving relative IRIs            | ⚪       |
-| `rdfcp:waitForMappingClose` | `xsd:boolean`  | Wait for mapping input completion before processing data | ⚪       |
-| `rdfcp:defaultTarget`       | `DefaultTarget`| Optional default target for unmapped outputs             | ⚪       |
-| `rdfcp:rmlSource`              | `Source`       | Input sources (multiple allowed)                         | ⚪       |
-| `rdfcp:rmlTarget`              | `Target`       | Output targets (multiple allowed)                        | ⚪       |
+Sources and targets are written as blank nodes; they need no `rdf:type`.
 
 
 ### RML Mapping File
